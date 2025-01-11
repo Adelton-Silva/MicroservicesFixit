@@ -1,0 +1,24 @@
+{
+  "Version": 1,
+  "Hash": "K6JkM/DG3Ld40gnyMGYCCLBsv1u2oFEZME6981P5KPg=",
+  "Source": "UserManagementService",
+  "BasePath": "_content/UserManagementService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [
+    {
+      "Identity": "C:\\Users\\adelt\\Desktop\\MicroservicesFixit\\AuthService\\AuthService.csproj",
+      "Version": 2,
+      "Source": "AuthService",
+      "GetPublishAssetsTargets": "ComputeReferencedStaticWebAssetsPublishManifest;GetCurrentProjectPublishStaticWebAssetItems",
+      "AdditionalPublishProperties": "",
+      "AdditionalPublishPropertiesToRemove": "WebPublishProfileFile;TargetFramework",
+      "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
+      "AdditionalBuildProperties": "",
+      "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework"
+    }
+  ],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
