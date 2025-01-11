@@ -28,6 +28,7 @@ namespace UserManagementService.Repositories
 
         public void UpdateUser(User user)
         {
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
             _context.Users.Update(user);
             _context.SaveChanges();
         }
