@@ -23,6 +23,14 @@ namespace UserManagementService.Controllers
         [HttpPost]
         public IActionResult AddUser([FromBody] User user)
         {
+            // Verificar se o usuário já existe
+            var existingUser = _repository.GetUserByUsername(user.Username);
+            if (existingUser != null)
+            {
+                return Conflict(new { Message = "User already exists." });
+            }
+
+            // Adicionar o usuário, pois ele não existe
             _repository.AddUser(user);
             return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
         }

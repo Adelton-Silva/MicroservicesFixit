@@ -16,8 +16,10 @@ namespace UserManagementService.Repositories
 
         public IEnumerable<User> GetAllUsers() => _context.Users.ToList();
 
-        public User GetUserByUsername(string username) =>
-            _context.Users.FirstOrDefault(u => u.Username == username);
+        public User? GetUserByUsername(string username)
+        {
+            return _context.Users.FirstOrDefault(u => u.Username == username);
+        }
 
         public void AddUser(User user)
         {
