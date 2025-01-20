@@ -419,3 +419,9 @@ C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.pdb
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.genruntimeconfig.cache
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\ref\UserManagementService.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\DnsClient.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\MongoDB.Bson.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\MongoDB.Driver.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\SharpCompress.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\Snappier.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\ZstdSharp.dll

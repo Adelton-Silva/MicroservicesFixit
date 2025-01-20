@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using AuthService.Models;
 using AuthService.Services;
 using System.Text.Json;
+using System.Reflection.Metadata.Ecma335;
 
 
 namespace AuthService.Controllers
@@ -33,9 +34,11 @@ namespace AuthService.Controllers
             {
                 var token = _tokenService.GenerateToken(request.Username);
                 return Ok(new { Token = token });
+                
             }
 
             return Unauthorized("Invalid credentials.");
+            
         }
     }
 }

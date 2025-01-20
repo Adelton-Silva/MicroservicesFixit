@@ -4,6 +4,9 @@ using UserManagementService.Repositories;
 using UserManagementService.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MongoDB.Driver;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +14,26 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Configurar banco de dados
-builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<UserDbContext>(options =>
+    //options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSingleton<UserDbContext>();
+builder.Services.AddScoped<UserRepository>();
+
+// Configuração do MongoDB
+var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+Console.WriteLine($"MongoDB ConnectionString: {mongoDbSettings.ConnectionString}");
+if (string.IsNullOrEmpty(mongoDbSettings.ConnectionString))
+{
+    throw new ArgumentNullException("MongoDB ConnectionString não pode ser nulo ou vazio.");
+}
+builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
+    new MongoClient(mongoDbSettings.ConnectionString));
+builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
+    serviceProvider.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings.DatabaseName));
+
+
+
 
 // Serviços
 builder.Services.AddScoped<UserRepository>();
@@ -32,6 +53,7 @@ builder.Services.AddAuthentication("Bearer")
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD")), // Chave secreta usada para assinar o token
         };
     });
+   
 
 // Adicionar Swagger
 builder.Services.AddEndpointsApiExplorer();

@@ -34,9 +34,8 @@ namespace UserManagementService.Services
             var channel = connection.CreateModel();
             channel.QueueDeclare(queue: "auth.login", durable: false, exclusive: false, autoDelete: false, arguments: null);
             channel.QueueDeclare(queue: "auth.login.response", durable: false, exclusive: false, autoDelete: false, arguments: null);
-
             var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += (model, ea) =>
+            consumer.Received += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
@@ -46,7 +45,7 @@ namespace UserManagementService.Services
 
                 // Verificar credenciais
                 var loginRequest = System.Text.Json.JsonSerializer.Deserialize<LoginRequest>(message);
-                var user = userRepository.GetUserByUsername(loginRequest.Username);
+                var user = await userRepository.GetUserByUsernameAsync(loginRequest.Username);
 
                 var isAuthenticated = user != null && BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password); // Verify hashed password
                 var response = isAuthenticated ? "Success" : "Failure";
