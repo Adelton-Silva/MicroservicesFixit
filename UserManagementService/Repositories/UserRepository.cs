@@ -1,54 +1,3 @@
-/*using UserManagementService.Models;
-using UserManagementService.Config;
-
-using BCrypt.Net;
-
-namespace UserManagementService.Repositories
-{
-    public class UserRepository
-    {
-        private readonly UserDbContext _context;
-
-        public UserRepository(UserDbContext context)
-        {
-            _context = context;
-        }
-
-        public IEnumerable<User> GetAllUsers() => _context.Users.ToList();
-
-        public User? GetUserByUsername(string username)
-        {
-            return _context.Users.FirstOrDefault(u => u.Username == username);
-        }
-
-        public void AddUser(User user)
-        {
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password); 
-            _context.Users.Add(user);
-            _context.SaveChanges();
-        }
-
-        public void UpdateUser(User user)
-        {
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
-            _context.Users.Update(user);
-            _context.SaveChanges();
-        }
-
-        public void DeleteUser(int id)
-        {
-            var user = _context.Users.Find(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                _context.SaveChanges();
-            }
-        }
-    }
-}
-
-*/
-
 using MongoDB.Driver;
 using UserManagementService.Models;
 using MongoDB.Bson;
@@ -59,10 +8,12 @@ namespace UserManagementService.Repositories
     public class UserRepository
     {
         private readonly IMongoCollection<User> _users;
+        private readonly IMongoCollection<Counter> _counterCollection;
 
         public UserRepository(IMongoDatabase database)
         {
             _users = database.GetCollection<User>("Users");
+            _counterCollection = database.GetCollection<Counter>("Counters");
             EnsureIndexes();
         }
 
@@ -73,6 +24,24 @@ namespace UserManagementService.Repositories
                 new CreateIndexOptions { Unique = true }
             ));
         }
+        public async Task<int> GetNextUserIdAsync()
+        {
+            // Filtro para pegar o contador de IDs
+            var filter = Builders<Counter>.Filter.Eq(c => c.Id, ObjectId.Empty);
+            var update = Builders<Counter>.Update.Inc(c => c.SequenceValue, 1);  // Incrementa o contador
+
+            // Se o contador não existir, o MongoDB cria um novo
+            var counter = await _counterCollection.FindOneAndUpdateAsync(
+                filter,
+                update,
+                new FindOneAndUpdateOptions<Counter>
+                {
+                    IsUpsert = true,  // Se não existir, cria um contador com valor 1
+                    ReturnDocument = ReturnDocument.After  // Retorna o contador após a atualização
+                });
+
+            return counter.SequenceValue;  // Retorna o próximo ID gerado
+        }
 
         public async Task<List<User>> GetAllUsersAsync() =>
             await _users.Find(user => true).ToListAsync();
@@ -80,24 +49,27 @@ namespace UserManagementService.Repositories
         public async Task<User?> GetUserByUsernameAsync(string username) =>
             await _users.Find(user => user.Username == username).FirstOrDefaultAsync();
 
+        public async Task<User?> GetUserByIdAsync(int id) =>
+                    await _users.Find(user => user.Id == id).FirstOrDefaultAsync();
         public async Task AddUserAsync(User user)
         {
             if (await GetUserByUsernameAsync(user.Username) != null)
             {
-                throw new InvalidOperationException("Username já está em uso.");
+                throw new InvalidOperationException("Username already exists.");
             }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            user.Id = await GetNextUserIdAsync();
             await _users.InsertOneAsync(user);
         }
 
-        public async Task UpdateUserByUsernameAsync(string username, User user)
+        public async Task UpdateUserByIdAsync(int id, User user)
         {
             // Buscar o usuário existente
-            var existingUser = await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
+            var existingUser = await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
             if (existingUser == null)
             {
-                throw new KeyNotFoundException("Usuário não encontrado.");
+                throw new KeyNotFoundException("User not found.");
             }
 
             // Verificar se o username no corpo não é o mesmo
@@ -106,7 +78,7 @@ namespace UserManagementService.Repositories
                 var usernameConflict = await _users.Find(u => u.Username == user.Username).FirstOrDefaultAsync();
                 if (usernameConflict != null)
                 {
-                    throw new InvalidOperationException("O username já está em uso.");
+                    throw new InvalidOperationException("Username already exists.");
                 }
             }
 
@@ -124,28 +96,30 @@ namespace UserManagementService.Repositories
             user.Id = existingUser.Id;
 
             // Executar a atualização
-            var updateResult = await _users.ReplaceOneAsync(u => u.Username == username, user);
+            var updateResult = await _users.ReplaceOneAsync(u => u.Id == id, user);
 
             // Verificar se a atualização foi bem-sucedida
             if (updateResult.ModifiedCount == 0)
             {
-                throw new Exception("Falha ao atualizar o usuário. Nenhuma modificação ocorreu.");
+                throw new Exception("Failed to update user. Please try again.");
             }
         }
 
 
 
 
-        public async Task DeleteUserAsync(string username)
+        public async Task DeleteUserAsync(int id)
         {
-            var user = await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
+            var user = await _users.Find(u => u.Id == id).FirstOrDefaultAsync();
             if (user == null)
             {
-                throw new KeyNotFoundException("Usuário não encontrado.");
+                throw new KeyNotFoundException("User not found.");
             }
 
-            await _users.DeleteOneAsync(u => u.Username == username);
+            await _users.DeleteOneAsync(u => u.Id == id);
         }
 
     }
 }
+
+

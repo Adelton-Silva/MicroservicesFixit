@@ -1,58 +1,3 @@
-/*using Microsoft.AspNetCore.Mvc;
-using UserManagementService.Models;
-using UserManagementService.Repositories;
-using Microsoft.AspNetCore.Authorization;
-
-namespace UserManagementService.Controllers
-{
-    //[Authorize]
-    [ApiController]
-    [Route("api/users")]
-    public class UserController : ControllerBase
-    {
-        private readonly UserRepository _repository;
-
-        public UserController(UserRepository repository)
-        {
-            _repository = repository;
-        }
-
-        [HttpGet]
-        public IActionResult GetUsers() => Ok(_repository.GetAllUsersAsync());
-
-        [HttpPost]
-        public IActionResult AddUser([FromBody] User user)
-        {
-            // Verificar se o usuário já existe
-            var existingUser = _repository.GetUserByUsernameAsync(user.Username);
-            if (existingUser != null)
-            {
-                return Conflict(new { Message = "User already exists." });
-            }
-
-            // Adicionar o usuário, pois ele não existe
-            _repository.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
-        }
-
-        [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, [FromBody] User user)
-        {
-            if (id.ToString() != user.Id) return BadRequest();
-            _repository.UpdateUserAsync(user);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult DeleteUser(int id)
-        {
-            _repository.DeleteUserAsync(id.ToString());
-            return NoContent();
-        }
-    }
-}
-*/
-
 using Microsoft.AspNetCore.Mvc;
 using UserManagementService.Models;
 using UserManagementService.Repositories;
@@ -92,44 +37,37 @@ namespace UserManagementService.Controllers
 
             // Adicionar o usuário, pois ele não existe
             await _repository.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUsers), new { username = user.Username }, user);
         }
 
-        [HttpPut("{username}")]
-        public async Task<IActionResult> UpdateUser(string username, [FromBody] User user)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
         {
             // Verificar se o username na URL corresponde ao username do usuário enviado no corpo
-            if (username != user.Username)
+            if (id != user.Id)
             {
                 return BadRequest(new { Message = "Username mismatch." });
             }
 
-            // Buscar o usuário existente pelo username
-            var existingUser = await _repository.GetUserByUsernameAsync(user.Username);
-            if (existingUser == null)
-            {
-                return NotFound(new { Message = "User not found." });
-            }
-
             // Atualizar o usuário
-            await _repository.UpdateUserByUsernameAsync(user.Username, user);
-            return NoContent();
+            await _repository.UpdateUserByIdAsync(user.Id, user);
+            return Ok("User updated successfully.");
         }
 
 
-        [HttpDelete("{username}")]
-        public async Task<IActionResult> DeleteUser(string username)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
         {
             // Verificar se o usuário existe
-            var existingUser = await _repository.GetUserByUsernameAsync(username);
+            var existingUser = await _repository.GetUserByIdAsync(id);
             if (existingUser == null)
             {
                 return NotFound(new { Message = "User not found." });
             }
 
             // Deletar o usuário
-            await _repository.DeleteUserAsync(username);
-            return NoContent();  // Retorna sucesso
+            await _repository.DeleteUserAsync(id);
+            return Ok("User deleted successfully.");  // Retorna sucesso
         }
 
     }

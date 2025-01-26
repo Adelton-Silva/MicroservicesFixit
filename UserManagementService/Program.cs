@@ -13,10 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Adicionar suporte a controladores
 builder.Services.AddControllers();
 
-// Configurar banco de dados
-//builder.Services.AddDbContext<UserDbContext>(options =>
-    //options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddSingleton<UserDbContext>();
 builder.Services.AddScoped<UserRepository>();
 

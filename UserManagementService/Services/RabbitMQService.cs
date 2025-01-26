@@ -22,7 +22,7 @@ namespace UserManagementService.Services
             {
                 HostName = _hostName,
                 UserName = _userName,
-                Password = _password
+                Password = _password,
             };
 
             using var connection = factory.CreateConnection();

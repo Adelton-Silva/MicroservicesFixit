@@ -3,6 +3,7 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using UserManagementService.Repositories;
 using AuthService.Models;
+using System.Text.Json;
 
 namespace UserManagementService.Services
 {
@@ -48,9 +49,22 @@ namespace UserManagementService.Services
                 var user = await userRepository.GetUserByUsernameAsync(loginRequest.Username);
 
                 var isAuthenticated = user != null && BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password); // Verify hashed password
-                var response = isAuthenticated ? "Success" : "Failure";
+                //var response = isAuthenticated ? "Success" : "Failure";
+
+                var response = JsonSerializer.Serialize(new
+                {
+                    Username = loginRequest.Username,
+                    Status = isAuthenticated ? "Success" : "Failure",
+                    User = isAuthenticated ? new
+                    {
+                        user.Id,
+                        user.Username,
+                        user.Email
+                    } : null
+                });
 
                 // Enviar resposta
+                //var responseMessage = JsonSerializer.Serialize(user);
                 var responseBytes = Encoding.UTF8.GetBytes(response);
                 channel.BasicPublish(exchange: "", routingKey: "auth.login.response", basicProperties: null, body: responseBytes);
             };
@@ -61,3 +75,4 @@ namespace UserManagementService.Services
         }
     }
 }
+

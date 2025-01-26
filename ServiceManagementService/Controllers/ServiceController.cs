@@ -15,7 +15,7 @@ public class ServiceController : ControllerBase
         _context = context;
     }
 
-    [HttpPost("createService")]
+    [HttpPost]
     public async Task<IActionResult> CreateService([FromBody] ServiceRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.Name))
