@@ -1,0 +1,14 @@
+using ServiceManagementService.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace ServiceManagementService.Data;
+
+public class PartsContext : DbContext
+{
+   public PartsContext(DbContextOptions<PartsContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Parts> Partss { get; set; }
+}
+

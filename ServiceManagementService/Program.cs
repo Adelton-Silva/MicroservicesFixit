@@ -5,12 +5,30 @@ using ServiceManagementService.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuração do PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<CompanyContext>(options =>
     options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<Machine_modContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<Machine_typeContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<MachineContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<PartsContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<StatusContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppointmentContext>(options =>
+options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ServiceContext>(options =>
+options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<ReviewContext>(options =>
+options.UseNpgsql(connectionString));
+
 
 // Configurar autenticação com JWT
 builder.Services.AddAuthentication("Bearer")

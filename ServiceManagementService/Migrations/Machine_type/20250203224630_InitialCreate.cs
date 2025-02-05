@@ -4,27 +4,28 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ServiceManagementService.Migrations
+namespace ServiceManagementService.Migrations.Machine_type
 {
     /// <inheritdoc />
-    public partial class CreateServicesTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Services",
+                name: "machine_types",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    description = table.Column<string>(type: "text", nullable: true),
+                    isActive = table.Column<int>(type: "integer", nullable: true),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    modified_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Services", x => x.Id);
+                    table.PrimaryKey("PK_machine_types", x => x.id);
                 });
         }
 
@@ -32,7 +33,7 @@ namespace ServiceManagementService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Services");
+                name: "machine_types");
         }
     }
 }

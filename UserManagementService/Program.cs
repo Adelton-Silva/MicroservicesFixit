@@ -34,6 +34,7 @@ builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
 // Serviços
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddHostedService<RabbitMQConsumer>();
+builder.Services.AddHostedService<UserValidationConsumer>();
 
 // Configurar autenticação com JWT
 builder.Services.AddAuthentication("Bearer")
