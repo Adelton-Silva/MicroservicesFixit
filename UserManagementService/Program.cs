@@ -1,43 +1,48 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
+using System.Text;
 using UserManagementService.Config;
 using UserManagementService.Repositories;
 using UserManagementService.Services;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using MongoDB.Driver;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar suporte a controladores
+// Adiciona suporte a controladores
 builder.Services.AddControllers();
-
-builder.Services.AddSingleton<UserDbContext>();
-builder.Services.AddScoped<UserRepository>();
 
 // Configuração do MongoDB
 var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-Console.WriteLine($"MongoDB ConnectionString: {mongoDbSettings.ConnectionString}");
-if (string.IsNullOrEmpty(mongoDbSettings.ConnectionString))
+
+if (mongoDbSettings == null || string.IsNullOrEmpty(mongoDbSettings.ConnectionString) || string.IsNullOrEmpty(mongoDbSettings.DatabaseName))
 {
-    throw new ArgumentNullException("MongoDB ConnectionString não pode ser nulo ou vazio.");
+    throw new ArgumentNullException("MongoDB ConnectionString e DatabaseName não podem ser nulos ou vazios.");
 }
-builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
-    new MongoClient(mongoDbSettings.ConnectionString));
-builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
-    serviceProvider.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings.DatabaseName));
 
-
-
-
-// Serviços
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoDbSettings.ConnectionString));
+builder.Services.AddSingleton<IMongoDatabase>(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings.DatabaseName));
+builder.Services.AddScoped<UserDbContext>();
 builder.Services.AddScoped<UserRepository>();
-builder.Services.AddHostedService<RabbitMQConsumer>();
-builder.Services.AddHostedService<UserValidationConsumer>();
 
-// Configurar autenticação com JWT
-builder.Services.AddAuthentication("Bearer")
+// Configuração do RabbitMQ Consumer com tratamento de erro
+try
+{
+    builder.Services.AddHostedService<RabbitMQConsumer>();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Erro ao inicializar RabbitMQConsumer: {ex.Message}");
+}
+
+// Configuração JWT
+var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key");
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new ArgumentNullException("JWT Key não pode ser nula ou vazia.");
+}
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -45,27 +50,36 @@ builder.Services.AddAuthentication("Bearer")
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "AuthService", // Emissor do token (AuthService)
-            ValidAudience = "UserManagementService", // Público esperado
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD")), // Chave secreta usada para assinar o token
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? Environment.GetEnvironmentVariable("Jwt__Issuer") ?? "AuthService",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("Jwt__Audience") ?? "UserManagementService",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
-   
 
 // Adicionar Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Criar a aplicação
 var app = builder.Build();
 
-app.UseAuthentication(); // Middleware de autenticação
-app.UseAuthorization();  // Middleware de autorização
+// Middleware de autenticação e autorização
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Middlewares adicionais
+// Configuração do Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserManagementService v1"));
 
 // Mapear controladores
 app.MapControllers();
 
-app.Run();
+// Iniciar aplicação com tratamento de erro
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Erro crítico na inicialização: {ex.Message}");
+}

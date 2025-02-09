@@ -5,11 +5,10 @@ using ServiceManagementService.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuração do PostgreSQL
-var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
+var connectionString = builder.Configuration.GetConnectionString("PostgresConnection"); // Usando o nome correto
 builder.Services.AddDbContext<CompanyContext>(options =>
     options.UseNpgsql(connectionString));
 builder.Services.AddDbContext<Machine_modContext>(options =>
@@ -29,7 +28,6 @@ options.UseNpgsql(connectionString));
 builder.Services.AddDbContext<ReviewContext>(options =>
 options.UseNpgsql(connectionString));
 
-
 // Configurar autenticação com JWT
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
@@ -41,7 +39,7 @@ builder.Services.AddAuthentication("Bearer")
             ValidateIssuerSigningKey = true,
             ValidIssuer = "AuthService", // Emissor do token (AuthService)
             ValidAudience = "UserManagementService", // Público esperado
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD")), // Chave secreta usada para assinar o token
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // Pegando a chave do appsettings
         };
     });
 

@@ -278,13 +278,9 @@ C:\Users\adelt\OneDrive - Instituto Politécnico do Cávado e do Ave\Ambiente de
 C:\Users\adelt\OneDrive - Instituto Politécnico do Cávado e do Ave\Ambiente de Trabalho\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.pdb
 C:\Users\adelt\OneDrive - Instituto Politécnico do Cávado e do Ave\Ambiente de Trabalho\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.genruntimeconfig.cache
 C:\Users\adelt\OneDrive - Instituto Politécnico do Cávado e do Ave\Ambiente de Trabalho\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\ref\UserManagementService.dll
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.staticwebassets.endpoints.json
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\appsettings.json
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\UserManagementService.staticwebassets.endpoints.json
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.deps.json
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.runtimeconfig.json
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.exe
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\UserManagementService.exe
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\UserManagementService.deps.json
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\UserManagementService.runtimeconfig.json
@@ -393,8 +389,6 @@ C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.dll
-C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\bin\Debug\net9.0\AuthService.pdb
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.csproj.AssemblyReference.cache
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\adelt\Desktop\MicroservicesFixit\UserManagementService\obj\Debug\net9.0\UserManagementService.AssemblyInfoInputs.cache

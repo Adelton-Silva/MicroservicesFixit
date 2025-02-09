@@ -10,12 +10,14 @@ namespace ServiceManagementService.Services
         private readonly string _hostName;
         private readonly string _userName;
         private readonly string _password;
+         private readonly string? _port;
 
         public RabbitMQService(IConfiguration configuration)
         {
             _hostName = configuration["RabbitMQ:Host"];
             _userName = configuration["RabbitMQ:Username"];
             _password = configuration["RabbitMQ:Password"];
+            _port = configuration["RabbitMQ:Port"];
         }
 
         public void SendMessage(string queueName, string message)
@@ -23,6 +25,7 @@ namespace ServiceManagementService.Services
             var factory = new ConnectionFactory()
             {
                 HostName = _hostName,
+                Port = int.Parse(_port),
                 UserName = _userName,
                 Password = _password
             };

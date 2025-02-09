@@ -27,7 +27,7 @@ namespace ServiceManagementService.Models
         [Column("motive_rescheduled")]
         public string? Motive_rescheduled { get; set; }
         
-        [Column("client_singnature")]
+        [Column("client_signature")]
         public string? Status_id { get; set; }
         
         [Column("created_date")]

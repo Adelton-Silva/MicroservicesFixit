@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1992
+      POSTGRES_DB: servicemanagment
+    ports:
+      - "5433:5432"
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h localhost -p 5432"]
+      interval: 15s
+      retries: 10
+      start_period: 30s
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mynetwork
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017 --quiet
+      interval: 10s
+      retries: 5
+      start_period: 10s
+
+  auth_service:
+    build:
+      context: ./AuthService
+      dockerfile: Dockerfile
+    container_name: auth_service
+    ports:
+      - "5000:5000"
+    networks:
+      - mynetwork
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
+      - Jwt__Issuer=AuthService
+      - Jwt__Audience=UserManagementService
+
+  service_management_service:
+    build:
+      context: ./ServiceManagementService
+      dockerfile: Dockerfile
+    container_name: service_management_service
+    ports:
+      - "5002:5002"
+    networks:
+      - mynetwork
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
+      - Jwt__Issuer=AuthService
+      - Jwt__Audience=ServiceManagementService
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=ServiceManagementDB
+      - PostgresConnection=Host=postgres;Database=servicemanagment;Username=postgres;Password=1992
+    command: sh -c "
+        echo 'Instalando postgresql-client para verificar o PostgreSQL...';
+        apt-get update && apt-get install -y postgresql-client;
+        echo 'Esperando o PostgreSQL ficar pronto...';
+      until PGPASSWORD=1992 psql -h postgres -U postgres -d servicemanagment -c 'SELECT 1' &> /dev/null; do
+        echo 'PostgreSQL ainda não está pronto... [$(date)]';
+        sleep 5;
+        done;
+      echo 'Rodando migrações...';
+      dotnet ef database update --project /app/ServiceManagementService.csproj --context ServiceContext;
+      echo 'Migrações concluídas. Iniciando o app...';
+      dotnet ServiceManagementService.dll
+      "
+
+  user_management_service:
+    build:
+      context: ./UserManagementService
+      dockerfile: Dockerfile
+    container_name: user_management_service
+    ports:
+      - "5001:5001"
+    networks:
+      - mynetwork
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      auth_service:
+        condition: service_started
+    environment:
+      - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
+      - Jwt__Issuer=AuthService
+      - Jwt__Audience=UserManagementService
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=UserManagementDB
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  mongodb_data:

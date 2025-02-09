@@ -2,8 +2,10 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using UserManagementService.Repositories;
-using AuthService.Models;
+using UserManagementService.Models;
 using System.Text.Json;
+using BCrypt.Net;
+
 
 namespace UserManagementService.Services
 {
