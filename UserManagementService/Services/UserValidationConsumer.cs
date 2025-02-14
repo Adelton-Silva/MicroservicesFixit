@@ -54,10 +54,14 @@ namespace UserManagementService.Services
                 });
 
                 var responseBytes = Encoding.UTF8.GetBytes(response);
+                
                 channel.BasicPublish(exchange: "", routingKey: "user.validate.response", basicProperties: null, body: responseBytes);
+
+                // Reconhecer a mensagem após o processamento
+                channel.BasicAck(ea.DeliveryTag, false);
             };
 
-            channel.BasicConsume(queue: "user.validate", autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: "user.validate", autoAck: false, consumer: consumer);
 
             return Task.CompletedTask;
         }

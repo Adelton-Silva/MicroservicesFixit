@@ -6,7 +6,7 @@ using ServiceManagementService.Data;
 using ServiceManagementService.Models;
 using ServiceManagementService.Services; // Para RabbitMQService
 
-namespace csharp_crud_api.Controllers;
+namespace ServiceManagementService.Controllers;
 
 [Authorize]
 [ApiController]
@@ -17,13 +17,15 @@ public class AppointmentController : ControllerBase
     private readonly StatusContext _statusContext;
     private readonly MachineContext _machineContext;
     private readonly RabbitMQService _rabbitMQService;
+    private readonly ILogger<AppointmentController> _logger; // Logger para debug
 
-    public AppointmentController(AppointmentContext context, StatusContext statusContext, MachineContext machineContext, RabbitMQService rabbitMQService)
+    public AppointmentController(AppointmentContext context, StatusContext statusContext, MachineContext machineContext, RabbitMQService rabbitMQService, ILogger<AppointmentController> logger)
     {
         _context = context;
         _statusContext = statusContext;
         _machineContext = machineContext;
         _rabbitMQService = rabbitMQService;
+        _logger = logger;
     }
 
     private int GetUserIdFromToken()
@@ -41,7 +43,7 @@ public class AppointmentController : ControllerBase
 
     // GET: api/Appointments/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Appointment>> GetUAppointment(int id)
+    public async Task<ActionResult<Appointment>> GetAppointment(int id)
     {
         var appointment = await _context.Appointments.FindAsync(id);
 
@@ -61,32 +63,40 @@ public class AppointmentController : ControllerBase
 
         if (userId == 0)
         {
+            _logger.LogWarning("Tentativa de agendamento com token inválido.");
             return Unauthorized("Invalid user.");
         }
+
+        _logger.LogInformation($"Enviando solicitação para validar user_id {userId} via RabbitMQ.");
 
         // Enviar solicitação ao UserManagementService para validar o user_id
         var message = JsonSerializer.Serialize(new { UserId = userId });
         _rabbitMQService.SendMessage("user.validate", message);
 
-        var response = _rabbitMQService.ReceiveMessage("user.validate.response");
+        // Aguarda a resposta com timeout de 10 segundos
+        var response = _rabbitMQService.ReceiveMessage("user.validate.response", TimeSpan.FromSeconds(10));
 
         if (string.IsNullOrEmpty(response))
         {
-            return StatusCode(500, "No response from user management service.");
+            _logger.LogError("Nenhuma resposta recebida do UserManagementService.");
+            return StatusCode(504, "Timeout: No response from user management service.");
         }
 
         var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
         if (!responseObject.TryGetProperty("Status", out var status) || status.GetString() != "Success")
         {
+            _logger.LogWarning($"User ID {userId} não encontrado no UserManagementService.");
             return Unauthorized("User does not exist.");
         }
+
+        _logger.LogInformation($"User ID {userId} validado com sucesso.");
 
         appointment.Client_id = userId; // Salvar o user_id como client_id
 
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetUAppointment), new { id = appointment.Id }, appointment);
+        return CreatedAtAction(nameof(GetAppointment), new { id = appointment.Id }, appointment);
     }
 
     // PUT: api/appointments/5
@@ -97,15 +107,18 @@ public class AppointmentController : ControllerBase
         {
             return BadRequest();
         }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
         var statusExists = _statusContext.Statuss.Any(st => st.Id == appointment.Status_id);
         if (!statusExists)
         {
             return BadRequest("The status type does not exist.");
         }
+
         var machineExists = _machineContext.Machines.Any(m => m.Id == appointment.Machine_id);
         if (!machineExists)
         {

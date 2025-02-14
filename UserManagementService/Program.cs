@@ -25,15 +25,10 @@ builder.Services.AddScoped<UserDbContext>();
 builder.Services.AddScoped<UserRepository>();
 
 // Configuração do RabbitMQ Consumer com tratamento de erro
-try
-{
-    builder.Services.AddHostedService<RabbitMQConsumer>();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Erro ao inicializar RabbitMQConsumer: {ex.Message}");
-}
 
+
+builder.Services.AddHostedService<RabbitMQConsumer>();
+builder.Services.AddHostedService<UserValidationConsumer>();
 // Configuração JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key");
 

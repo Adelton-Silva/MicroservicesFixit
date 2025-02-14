@@ -38,7 +38,7 @@ namespace AuthService.Services
             channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: null, body: body);
         }
 
-        public string ReceiveMessage(string queueName)
+        public string ReceiveMessage(string queueName, TimeSpan timeout)
         {
             var factory = new ConnectionFactory
             {
@@ -51,6 +51,7 @@ namespace AuthService.Services
             using var channel = connection.CreateModel();
             channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
+            var tcs = new TaskCompletionSource<string>();
             var consumer = new EventingBasicConsumer(channel);
             string? response = null;
 
@@ -58,13 +59,21 @@ namespace AuthService.Services
             {
                 var body = ea.Body.ToArray();
                 response = Encoding.UTF8.GetString(body);
+                tcs.SetResult(response);
+                channel.BasicAck(ea.DeliveryTag, multiple: false);
             };
 
-            channel.BasicConsume(queue: queueName, autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
-            // Simular espera (simplificado)
-            System.Threading.Thread.Sleep(1000);
-            return response ?? string.Empty;
+            var task = tcs.Task;
+            if (Task.WaitAny(new[] { task }, timeout) == 0)
+            {
+                return task.Result;
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ using ServiceManagementService.Data;
 using ServiceManagementService.Models;
 using ServiceManagementService.Services; // Para RabbitMQService
 
-namespace csharp_crud_api.Controllers;
+namespace ServiceManagementService.Controllers;
 
 [Authorize]
 [ApiController]
@@ -16,14 +16,17 @@ public class ReviewController : ControllerBase
     private readonly ReviewContext _context;
     private readonly ServiceContext _serviceContext;
     private readonly RabbitMQService _rabbitMQService;
-        public ReviewController(ReviewContext context, ServiceContext serviceContext, RabbitMQService rabbitMQService) 
+    private readonly ILogger<ReviewController> _logger; // Logger para debug
+
+    public ReviewController(ReviewContext context, ServiceContext serviceContext, RabbitMQService rabbitMQService, ILogger<ReviewController> logger) 
     {
         _context = context;
         _serviceContext = serviceContext;
         _rabbitMQService = rabbitMQService; 
+        _logger = logger;
     }
 
-     // GET: api/reviews/
+    // GET: api/reviews/
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Review>>> GetReview()
     {
@@ -58,28 +61,41 @@ public class ReviewController : ControllerBase
 
         if (userId == 0)
         {
+            _logger.LogWarning("Tentativa de criação de review com token inválido.");
             return Unauthorized("Invalid user.");
         }
-         var message = JsonSerializer.Serialize(new { UserId = userId });
+
+        _logger.LogInformation($"Enviando solicitação para validar user_id {userId} via RabbitMQ.");
+
+        // Enviar solicitação ao UserManagementService para validar o user_id
+        var message = JsonSerializer.Serialize(new { UserId = userId });
         _rabbitMQService.SendMessage("user.validate", message);
 
-        var response = _rabbitMQService.ReceiveMessage("user.validate.response");
+        // Aguarda a resposta com timeout de 10 segundos
+        var response = _rabbitMQService.ReceiveMessage("user.validate.response", TimeSpan.FromSeconds(10));
 
         if (string.IsNullOrEmpty(response))
         {
-            return StatusCode(500, "No response from user management service.");
+            _logger.LogError("Nenhuma resposta recebida do UserManagementService.");
+            return StatusCode(504, "Timeout: No response from user management service.");
         }
-         var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
+
+        var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
         if (!responseObject.TryGetProperty("Status", out var status) || status.GetString() != "Success")
         {
+            _logger.LogWarning($"User ID {userId} não encontrado no UserManagementService.");
             return Unauthorized("User does not exist.");
         }
 
+        _logger.LogInformation($"User ID {userId} validado com sucesso.");
+
         review.Client_id = userId;
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
         var serviceExists = _serviceContext.Services.Any(st => st.Id == review.Service_id);
         if (!serviceExists)
         {
@@ -92,19 +108,20 @@ public class ReviewController : ControllerBase
         return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
     }
 
-     // PUT: api/reviews/5
+    // PUT: api/reviews/5
     [HttpPut("{id}")]
     public async Task<IActionResult> PutReview(int id, Review review)
     {
-        
         if (id != review.Id)
         {
             return BadRequest();
         }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
         var serviceExists = _serviceContext.Services.Any(st => st.Id == review.Service_id);
         if (!serviceExists)
         {
@@ -152,5 +169,4 @@ public class ReviewController : ControllerBase
     {
         return _context.Reviews.Any(e => e.Id == id);
     }
-
 }

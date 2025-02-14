@@ -24,7 +24,7 @@ namespace ServiceManagementService.Models
         public DateTime? last_maintenance_date { get; set; }
 
         [Column("isActive")]
-        public int? IsActive { get; set; }
+        public int? Isactive { get; set; }
 
         [Column("created_date")]
         public DateTime? created_date { get; set; }

@@ -21,12 +21,13 @@ namespace AuthService.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
+            
             // Enviar solicitação ao UserManagementService para validar o login
             var message = JsonSerializer.Serialize(request);
             _rabbitMQService.SendMessage("auth.login", message);
 
             // Receber resposta da fila de validação
-            var response = _rabbitMQService.ReceiveMessage("auth.login.response");
+            var response = _rabbitMQService.ReceiveMessage("auth.login.response", TimeSpan.FromSeconds(10));
 
             if (string.IsNullOrEmpty(response))
             {

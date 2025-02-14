@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ServiceManagementService.Models
 {
-    [Table("Parts")]
+    [Table("parts")]
     public class Parts
     {
         [Column("id")]

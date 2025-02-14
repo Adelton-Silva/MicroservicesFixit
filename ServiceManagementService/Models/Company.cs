@@ -30,7 +30,7 @@ namespace ServiceManagementService.Models
         public string? Location_reference { get; set; }
         
         [Column("isActive")]
-        public int? IsActive { get; set; } 
+        public int? Isactive { get; set; } 
         
         [Column("created_date")]
         public DateTime? Created_date { get; set; }

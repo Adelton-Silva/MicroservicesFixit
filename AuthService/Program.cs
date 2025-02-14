@@ -31,7 +31,7 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddSingleton<RabbitMQService>();
 
 // Adicionar Swagger
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer(); 
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
