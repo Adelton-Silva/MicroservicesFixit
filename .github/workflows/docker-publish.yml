@@ -28,6 +28,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: ./  # Diretório raiz do repositório
-        file: ./MicroservicesFixit/AuthService/Dockerfile  # Caminho para o Dockerfile
+        file: ./AuthService/Dockerfile  # Caminho para o Dockerfile
         push: true
         tags: adeltosilva/auth-service:latest
