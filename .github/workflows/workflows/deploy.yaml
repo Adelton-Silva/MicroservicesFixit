@@ -33,7 +33,7 @@ jobs:
           if [[ -z "$DOCKER_USER" || -z "$DOCKER_PASSWORD" ]]; then
             echo "Erro: Secrets DOCKER_USER ou DOCKER_PASSWORD não configurados."
             exit 1
-          fi
+          if
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 
       - name: Build and Push AuthService Image
