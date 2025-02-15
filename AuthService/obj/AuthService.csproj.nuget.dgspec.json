@@ -56,6 +56,10 @@
               "target": "Package",
               "version": "[9.0.0, )"
             },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[3.2.0, )"
+            },
             "RabbitMQ.Client": {
               "target": "Package",
               "version": "[6.8.0, )"
