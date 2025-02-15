@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Executa quando há um push na branch "main"
+      - main  
   pull_request:
     branches:
-      - main  # Executa quando há um PR para "main"
+      - main  
 
 jobs:
   build-and-push:
@@ -38,41 +38,12 @@ jobs:
 
       - name: Build and Push AuthService Image
         run: |
-          docker build -t $REGISTRY/$DOCKER_USER/auth-service:latest -f AuthService/Dockerfile AuthService/
-          docker push $REGISTRY/$DOCKER_USER/auth-service:latest
+          docker buildx build --platform linux/amd64 -t $REGISTRY/$DOCKER_USER/auth-service:latest -f AuthService/Dockerfile --push .
 
       - name: Build and Push UserManagementService Image
         run: |
-          docker build -t $REGISTRY/$DOCKER_USER/user-management-service:latest -f UserManagementService/Dockerfile UserManagementService/
-          docker push $REGISTRY/$DOCKER_USER/user-management-service:latest
+          docker buildx build --platform linux/amd64 -t $REGISTRY/$DOCKER_USER/user-management-service:latest -f UserManagementService/Dockerfile --push .
 
       - name: Build and Push ServiceManagementService Image
         run: |
-          docker build -t $REGISTRY/$DOCKER_USER/service-management-service:latest -f ServiceManagementService/Dockerfile ServiceManagementService/
-          docker push $REGISTRY/$DOCKER_USER/service-management-service:latest
-
-  deploy:
-    name: Deploy to Kubernetes
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    env:
-      KUBECONFIG: ${{ secrets.KUBECONFIG }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: "latest"
-
-      - name: Deploy to Kubernetes
-        run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
-          export KUBECONFIG=kubeconfig.yaml
-          kubectl apply -f kubernetes-deployment.yaml
-          kubectl rollout status deployment/auth-service -n microservices
-          kubectl rollout status deployment/user-management-service -n microservices
-          kubectl rollout status deployment/service-management-service -n microservices
+          docker buildx build --platform linux/amd64 -t $REGISTRY/$DOCKER_USER/service-management-service:latest -f ServiceManagementService/Dockerfile --push .
