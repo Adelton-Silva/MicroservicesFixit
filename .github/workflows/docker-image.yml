@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Images 
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,20 +29,27 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+        run: |
+          if [[ -z "$DOCKER_USER" || -z "$DOCKER_PASSWORD" ]]; then
+            echo "Erro: Secrets DOCKER_USER ou DOCKER_PASSWORD não configurados."
+            exit 1
+          fi
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 
       - name: Build and Push AuthService Image
-      - run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/auth-service:latest -f AuthService/Dockerfile AuthService/
-
+        run: |
+          docker build -t $REGISTRY/$DOCKER_USER/auth-service:latest -f AuthService/Dockerfile AuthService/
+          docker push $REGISTRY/$DOCKER_USER/auth-service:latest
 
       - name: Build and Push UserManagementService Image
-      - run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/user-management-service:latest -f UserManagementService/Dockerfile UserManagementService/
+        run: |
+          docker build -t $REGISTRY/$DOCKER_USER/user-management-service:latest -f UserManagementService/Dockerfile UserManagementService/
+          docker push $REGISTRY/$DOCKER_USER/user-management-service:latest
 
       - name: Build and Push ServiceManagementService Image
-      - run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/service-management-service:latest -f ServiceManagementService/Dockerfile ServiceManagementService/
+        run: |
+          docker build -t $REGISTRY/$DOCKER_USER/service-management-service:latest -f ServiceManagementService/Dockerfile ServiceManagementService/
+          docker push $REGISTRY/$DOCKER_USER/service-management-service:latest
 
   deploy:
     name: Deploy to Kubernetes
