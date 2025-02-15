@@ -2,21 +2,27 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copiar o arquivo .csproj e restaurar dependências
-COPY AuthService.csproj ./
+# Copiar apenas o arquivo .csproj e restaurar dependências
+COPY AuthService/AuthService.csproj AuthService/
 WORKDIR /src/AuthService
-RUN dotnet restore "AuthService.csproj"
+RUN dotnet restore
 
-# Copiar o restante dos arquivos e compilar
-COPY . .
-RUN dotnet publish "AuthService.csproj" -c Release -o /app
+# Copiar o restante dos arquivos do projeto
+COPY AuthService/. .
+
+# Compilar e publicar a aplicação
+RUN dotnet publish -c Release -o /app
 
 # Etapa final para execução
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+
+# Copiar os arquivos da etapa de build para a imagem final
 COPY --from=build /app .
 
-# Definir a porta correta
+# Configurar a porta e variáveis de ambiente
 ENV ASPNETCORE_URLS=http://+:5000
 EXPOSE 5000
+
+# Definir o comando de entrada da aplicação
 ENTRYPOINT ["dotnet", "AuthService.dll"]
