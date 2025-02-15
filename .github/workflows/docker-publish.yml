@@ -39,7 +39,7 @@ jobs:
       - name: Build and Push AuthService Image
         run: |
          docker buildx build --platform linux/amd64 \
-         --file Dockerfile \
+         --file AuthService/Dockerfile \
          --tag $REGISTRY/$DOCKER_USER/auth-service:latest \
          --push \
          MicroservicesFixit/AuthService/
