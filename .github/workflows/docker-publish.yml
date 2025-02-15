@@ -13,6 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Verify directory structure
+      run: |
+        echo "Verifying directory structure..."
+        ls -R
+
     - name: Log in to DockerHub
       uses: docker/login-action@v2
       with:
@@ -22,7 +27,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: .  # O contexto é o diretório raiz do repositório
-        file: ./MicroservicesFixit/AuthService/Dockerfile  # Caminho para o Dockerfile dentro do diretório MicroservicesFixit/AuthService
+        context: ./  # Diretório raiz do repositório
+        file: ./MicroservicesFixit/AuthService/Dockerfile  # Caminho para o Dockerfile
         push: true
         tags: adeltosilva/auth-service:latest
