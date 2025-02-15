@@ -38,19 +38,24 @@ jobs:
 
       - name: Build and Push AuthService Image
         run: |
-         docker buildx build --platform linux/amd64 \
-         --file AuthService/Dockerfile \
-         --tag $REGISTRY/$DOCKER_USER/auth-service:latest \
-         --push \
-         MicroservicesFixit/AuthService/
-
-
-
+          docker buildx build --platform linux/amd64 \
+            --file MicroservicesFixit/AuthService/Dockerfile \
+            --tag $REGISTRY/$DOCKER_USER/auth-service:latest \
+            --push \
+            MicroservicesFixit/AuthService/
 
       - name: Build and Push UserManagementService Image
         run: |
-          docker buildx build --platform linux/amd64 --file UserManagementService/Dockerfile --tag $REGISTRY/$DOCKER_USER/user-management-service:latest --push UserManagementService/
+          docker buildx build --platform linux/amd64 \
+            --file MicroservicesFixit/UserManagementService/Dockerfile \
+            --tag $REGISTRY/$DOCKER_USER/user-management-service:latest \
+            --push \
+            MicroservicesFixit/UserManagementService/
 
       - name: Build and Push ServiceManagementService Image
         run: |
-          docker buildx build --platform linux/amd64 --file ServiceManagementService/Dockerfile --tag $REGISTRY/$DOCKER_USER/service-management-service:latest --push ServiceManagementService/
+          docker buildx build --platform linux/amd64 \
+            --file MicroservicesFixit/ServiceManagementService/Dockerfile \
+            --tag $REGISTRY/$DOCKER_USER/service-management-service:latest \
+            --push \
+            MicroservicesFixit/ServiceManagementService/
