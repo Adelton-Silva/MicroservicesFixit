@@ -42,9 +42,8 @@ jobs:
          --file MicroservicesFixit/AuthService/Dockerfile \
          --tag $REGISTRY/$DOCKER_USER/auth-service:latest \
          --push \
-         --progress plain \
-         -t $REGISTRY/$DOCKER_USER/auth-service:latest \
-          MicroservicesFixit/AuthService
+         MicroservicesFixit/AuthService/
+
 
 
 
