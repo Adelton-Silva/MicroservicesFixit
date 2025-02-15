@@ -22,7 +22,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: .  # Usando o diretório raiz como contexto
-        file: ./MicroservicesFixit/AuthService/Dockerfile
+        context: .  # O contexto é o diretório raiz do repositório
+        file: ./MicroservicesFixit/AuthService/Dockerfile  # Caminho para o Dockerfile dentro do diretório MicroservicesFixit/AuthService
         push: true
         tags: adeltosilva/auth-service:latest
