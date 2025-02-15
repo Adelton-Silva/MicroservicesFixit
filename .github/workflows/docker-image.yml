@@ -32,19 +32,17 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
 
       - name: Build and Push AuthService Image
-        run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/auth-service:latest -f AuthService/Dockerfile .
-          docker push $REGISTRY/${{ secrets.DOCKER_USER }}/auth-service:latest
+      - run: |
+          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/auth-service:latest -f AuthService/Dockerfile AuthService/
+
 
       - name: Build and Push UserManagementService Image
-        run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/user-management-service:latest -f UserManagementService/Dockerfile .
-          docker push $REGISTRY/${{ secrets.DOCKER_USER }}/user-management-service:latest
+      - run: |
+          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/user-management-service:latest -f UserManagementService/Dockerfile UserManagementService/
 
       - name: Build and Push ServiceManagementService Image
-        run: |
-          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/service-management-service:latest -f ServiceManagementService/Dockerfile .
-          docker push $REGISTRY/${{ secrets.DOCKER_USER }}/service-management-service:latest
+      - run: |
+          docker build -t $REGISTRY/${{ secrets.DOCKER_USER }}/service-management-service:latest -f ServiceManagementService/Dockerfile ServiceManagementService/
 
   deploy:
     name: Deploy to Kubernetes
