@@ -3,12 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar apenas o arquivo .csproj e restaurar dependências
-COPY ServiceManagementService/ServiceManagementService.csproj ServiceManagementService/
+COPY ./ServiceManagementService.csproj ServiceManagementService/
 WORKDIR /src/ServiceManagementService
 RUN dotnet restore
 
 # Copiar o restante dos arquivos do projeto
-COPY ServiceManagementService/. .
+COPY . .
 
 # Compilar e publicar a aplicação
 RUN dotnet publish -c Release -o /app
