@@ -1,64 +1,33 @@
-name: CI/CD Pipeline
+name: Build and Push Docker Image
 
 on:
   push:
     branches:
-      - main  
-  pull_request:
-    branches:
-      - main  
+      - main  # Executa o workflow quando houver um push na branch 'main'
 
 jobs:
-  build-and-push:
-    name: Build and Push Docker Images
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    env:
-      REGISTRY: docker.io
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Verify Repository Structure
-        run: ls -R
+    - name: Verify directory structure
+      run: |
+        echo "Verifying directory structure..."
+        ls -R
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Log in to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Log in to Docker Hub
-        run: |
-          if [[ -z "$DOCKER_USER" || -z "$DOCKER_PASSWORD" ]]; then
-            echo "Erro: Secrets DOCKER_USER ou DOCKER_PASSWORD não configurados."
-            exit 1
-          fi
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
-
-      - name: Build and Push AuthService Image
-        run: |
-         docker build --platform linux/amd64 \
-         --file MicroservicesFixit/AuthService/Dockerfile \
-         --tag $REGISTRY/$DOCKER_USER/auth-service:latest \
-         --push MicroservicesFixit/
-
-      
-      - name: Build and Push UserManagementService Image
-        run: |
-          docker buildx build --platform linux/amd64 \
-            --file MicroservicesFixit/UserManagementService/Dockerfile \
-            --tag $REGISTRY/$DOCKER_USER/user-management-service:latest \
-            --push \
-            MicroservicesFixit/UserManagementService/
-
-      - name: Build and Push ServiceManagementService Image
-        run: |
-          docker buildx build --platform linux/amd64 \
-            --file MicroservicesFixit/ServiceManagementService/Dockerfile \
-            --tag $REGISTRY/$DOCKER_USER/service-management-service:latest \
-            --push \
-            MicroservicesFixit/ServiceManagementService/
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./  # Diretório raiz do repositório
+        file: ./AuthService/Dockerfile  # Caminho para o Dockerfile
+        push: true
+        tags: adeltosilva/auth-service:latest
