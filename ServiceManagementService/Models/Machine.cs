@@ -12,7 +12,7 @@ namespace ServiceManagementService.Models
         public int? company_id { get; set; }    
 
         [ForeignKey("machine_mod_id")]
-        public int? machine_mod_id { get; set; }
+        public int? Machine_mod_id { get; set; }
 
         [Column("serial_number")]    
         public string? serial_number { get; set; }
