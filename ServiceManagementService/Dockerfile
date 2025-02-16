@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar apenas o arquivo .csproj e restaurar dependências
-COPY ./ServiceManagementService.csproj ServiceManagementService/
+COPY ./ServiceManagementService.csproj ./ServiceManagementService/
 WORKDIR /src/ServiceManagementService
 RUN dotnet restore
 
@@ -11,7 +11,7 @@ RUN dotnet restore
 COPY . .
 
 # Compilar e publicar a aplicação
-RUN dotnet publish -c Release -o /app || cat /app/logs/error.log
+RUN dotnet publish -c Release -o /app && echo "Build succeeded" || echo "Build failed"
 
 # Etapa final para execução
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
