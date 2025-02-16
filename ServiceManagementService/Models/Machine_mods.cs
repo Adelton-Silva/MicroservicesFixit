@@ -11,7 +11,7 @@ namespace ServiceManagementService.Models
         [Column("model")]
         public string? Model { get; set; }
 
-        [ForeignKey("machine_type_id")]
+        [ForeignKey("Machine_type_id")]
         public int? machine_type_id { get; set; }
         //public Machine_type Machine_type { get; set; }
 
