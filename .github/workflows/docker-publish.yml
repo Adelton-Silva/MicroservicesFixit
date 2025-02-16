@@ -13,12 +13,12 @@ jobs:
       - name: Checkout código-fonte
         uses: actions/checkout@v4
 
-      - name: Autenticar no Docker Hub
+      - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+         username: ${{ secrets.DOCKERHUB_USERNAME }}
+         password: ${{ secrets.DOCKERHUB_TOKEN }}
+         
       - name: Configurar QEMU (para compatibilidade multi-plataforma)
         uses: docker/setup-qemu-action@v3
 
