@@ -28,7 +28,7 @@ jobs:
       - name: Build e push do AuthService
         run: |
          docker build -t seu_usuario/auth-service:latest ./AuthService
-         docker push seu_usuario/auth-service:latest
+         docker push adeltonsilva/auth-service:latest
 
 
       - name: Construir e enviar UserManagementService
