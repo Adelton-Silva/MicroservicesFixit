@@ -11,14 +11,17 @@ RUN dotnet restore
 COPY . .
 
 # Compilar e publicar a aplicação
-RUN dotnet publish -c Release -o /app && echo "Build succeeded" || echo "Build failed"
+RUN dotnet publish -c Release -o /src/app && echo "Build succeeded" || echo "Build failed"
+
+# Verificar se os arquivos foram criados em /src/app
+RUN ls -l /src/app
 
 # Etapa final para execução
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # Copiar os arquivos da etapa de build para a imagem final
-COPY --from=build /app .
+COPY --from=build /src/app .
 
 # Configurar a porta e variáveis de ambiente
 ENV ASPNETCORE_URLS=http://+:5002
