@@ -29,20 +29,11 @@ jobs:
         run: |
          docker build --no-cache -t adeltosilva/auth-service:latest -f AuthService/Dockerfile ./AuthService
 
+      - name: Build do UserManagementService
+        run: |
+         docker build --no-cache -t adeltosilva/user-management-service:latest -f UserManagementService/Dockerfile ./UserManagementService
 
+      - name: Build do ServiceManagementService
+        run: |
+         docker build --no-cache -t adeltosilva/service-management-service:latest -f ServiceManagementService/Dockerfile ./ServiceManagementService
 
-      - name: Construir e enviar UserManagementService
-        uses: docker/build-push-action@v5
-        with:
-          context: ./UserManagementService
-          file: ./UserManagementService/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-management-service:latest
-
-      - name: Construir e enviar ServiceManagementService
-        uses: docker/build-push-action@v5
-        with:
-          context: ./ServiceManagementService
-          file: ./ServiceManagementService/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/service-management-service:latest
