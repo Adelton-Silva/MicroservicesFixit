@@ -11,7 +11,7 @@ RUN dotnet restore
 COPY . .
 
 # Compilar e publicar a aplicação
-RUN dotnet publish -c Release -o /app
+RUN dotnet publish -c Release -o /app || cat /app/logs/error.log
 
 # Etapa final para execução
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
