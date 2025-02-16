@@ -25,13 +25,11 @@ jobs:
       - name: Configurar Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Construir e enviar AuthService
-        uses: docker/build-push-action@v5
-        with:
-          context: ./AuthService
-          file: ./AuthService/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+      - name: Build e push do AuthService
+        run: |
+         docker build -t seu_usuario/auth-service:latest ./AuthService
+         docker push seu_usuario/auth-service:latest
+
 
       - name: Construir e enviar UserManagementService
         uses: docker/build-push-action@v5
