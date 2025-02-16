@@ -8,7 +8,7 @@ WORKDIR /src/AuthService
 RUN dotnet restore
 
 # Copiar o restante dos arquivos do projeto
-COPY AuthService/. .
+COPY . .
 
 # Compilar e publicar a aplicação
 RUN dotnet publish -c Release -o /app
