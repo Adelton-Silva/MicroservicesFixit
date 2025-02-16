@@ -27,7 +27,7 @@ jobs:
 
       - name: Build do AuthService
         run: |
-         docker build -t adeltosilva/auth-service:latest -f AuthService/Dockerfile ./AuthService
+         docker build --no-cache -t adeltosilva/auth-service:latest -f AuthService/Dockerfile ./AuthService
 
 
 
