@@ -9,7 +9,7 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [ForeignKey("company_id")]
-        public int? company_id { get; set; }    
+        public int? Company_id { get; set; }    
 
         [ForeignKey("machine_mod_id")]
         public int? Machine_mod_id { get; set; }
