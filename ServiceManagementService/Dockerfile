@@ -1,41 +1,28 @@
-# Use the official .NET 9 SDK image as a build stage
+# Etapa de build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /source
+WORKDIR /src
 
-# Copy the project file and restore dependencies
-COPY *.csproj .
+# Copiar apenas o arquivo .csproj e restaurar dependências
+COPY ServiceManagementService/ServiceManagementService.csproj ServiceManagementService/
+WORKDIR /src/ServiceManagementService
 RUN dotnet restore
 
-# Copy the rest of the application code
-COPY . .
+# Copiar o restante dos arquivos do projeto
+COPY ServiceManagementService/. .
 
-# Build the application
+# Compilar e publicar a aplicação
 RUN dotnet publish -c Release -o /app
 
-# Use the official .NET 9 runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+# Etapa final para execução
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Adiciona repositório oficial e chave pública da Microsoft
-RUN apt-get update && apt-get install -y wget apt-transport-https software-properties-common \
-    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && wget https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
-    && mv prod.list /etc/apt/sources.list.d/dotnet-prod.list \
-    && apt-get update
-
-# Instala o SDK do .NET
-RUN apt-get install -y dotnet-sdk-9.0
-
-# Copy the build output from the build stage
+# Copiar os arquivos da etapa de build para a imagem final
 COPY --from=build /app .
 
-# Instala dotnet-ef dentro do contêiner final
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-
-# Expose the port the application runs on
-# Definir a porta correta
+# Configurar a porta e variáveis de ambiente
 ENV ASPNETCORE_URLS=http://+:5002
 EXPOSE 5002
-# Set the entry point for the application
+
+# Definir o comando de entrada da aplicação
 ENTRYPOINT ["dotnet", "ServiceManagementService.dll"]
