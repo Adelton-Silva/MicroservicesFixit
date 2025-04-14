@@ -21,8 +21,8 @@ WORKDIR /app
 COPY --from=build /app .
 
 # Configurar a porta e variáveis de ambiente
-ENV ASPNETCORE_URLS=http://+:5000
-EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5003
+EXPOSE 5003
 
 # Definir o comando de entrada da aplicação
 ENTRYPOINT ["dotnet", "AuthService.dll"]

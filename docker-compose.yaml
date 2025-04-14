@@ -53,7 +53,7 @@ services:
       dockerfile: Dockerfile
     container_name: auth_service
     ports:
-      - "5000:5000"
+      - "5003:5003"
     networks:
       - mynetwork
     depends_on:
@@ -119,11 +119,31 @@ services:
         condition: service_started
     environment:
       - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
-      - Jwt__Issuer=AuthService
+      - Jwt__Issuer=[ "UserManagementService", "ApiGateway" ]
       - Jwt__Audience=UserManagementService
       - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
       - MongoDbSettings__DatabaseName=UserManagementDB
 
+
+  api_gateway:
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    ports:
+      - "5000:5000"
+    networks:
+      - mynetwork
+    depends_on:
+      - auth_service
+      - user_management_service
+      - service_management_service
+    environment:
+      - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
+      - Jwt__Issuer=ApiGateway
+      - Jwt__Audience=AuthService
+
+      
 networks:
   mynetwork:
     driver: bridge
