@@ -7,6 +7,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Carregar as variáveis de ambiente, caso existam
+builder.Configuration.AddEnvironmentVariables();
+
 // Configuração do PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection"); // Usando o nome correto
 builder.Services.AddDbContext<CompanyContext>(options =>
