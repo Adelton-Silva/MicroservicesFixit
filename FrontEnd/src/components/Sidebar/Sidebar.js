@@ -20,6 +20,8 @@ import { useLocation, NavLink } from "react-router-dom";
 
 import { Nav } from "react-bootstrap";
 
+import PropTypes from 'prop-types'; // Keep this line
+
 import logo from "assets/img/reactlogo.png";
 
 function Sidebar({ color, image, routes }) {
@@ -78,5 +80,28 @@ function Sidebar({ color, image, routes }) {
     </div>
   );
 }
+
+// --- Add this section ---
+Sidebar.propTypes = {
+  // `color` is a string
+  color: PropTypes.string,
+  // `image` is a string (URL to the background image)
+  image: PropTypes.string,
+  // `routes` is an array of objects. Each object represents a route.
+  routes: PropTypes.arrayOf(
+    PropTypes.shape({
+      path: PropTypes.string,
+      name: PropTypes.string,
+      icon: PropTypes.string,
+      layout: PropTypes.string,
+      redirect: PropTypes.bool,
+      upgrade: PropTypes.bool,
+      // You can add more specific PropTypes for nested properties if needed
+      // e.g., if prop.layout is always a string, prop.path is always a string, etc.
+    })
+  ).isRequired, // Assuming `routes` is always provided and is an array
+};
+// --- End of new section ---
+
 
 export default Sidebar;

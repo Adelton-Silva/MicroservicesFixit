@@ -10,10 +10,10 @@ import {
   Nav,
   Container,
   Row,
-  Col
+  Col,
 } from "react-bootstrap";
 
-function User() {
+function UserProfile() {
   return (
     <>
       <Container fluid>
@@ -129,12 +129,12 @@ function User() {
                       <Form.Group>
                         <label>About Me</label>
                         <Form.Control
+                          as="textarea"
                           cols="80"
-                          defaultValue="Lamborghini Mercy, Your chick she so thirsty, I'm in
-                          that two seat Lambo."
+                          defaultValue="Lamborghini Mercy, Your chick she look so thirsty, I'm in
+                            that two seat Lambo."
                           placeholder="Here can be your description"
                           rows="4"
-                          as="textarea"
                         ></Form.Control>
                       </Form.Group>
                     </Col>
@@ -156,7 +156,7 @@ function User() {
               <div className="card-image">
                 <img
                   alt="..."
-                  src={require("assets/img/photo-1431578500526-4d9613015464.jpeg")}
+                  //src={require("../assets/img/photo-1431578568924-484757ed888b.jpeg")}
                 ></img>
               </div>
               <Card.Body>
@@ -165,45 +165,49 @@ function User() {
                     <img
                       alt="..."
                       className="avatar border-gray"
-                      src={require("assets/img/faces/face-3.jpg")}
+                      //src={require("../assets/img/face-3.jpg")}
                     ></img>
                     <h5 className="title">Mike Andrew</h5>
                   </a>
                   <p className="description">michael24</p>
                 </div>
                 <p className="description text-center">
-                  "Lamborghini Mercy <br></br>
-                  Your chick she so thirsty <br></br>
-                  I'm in that two seat Lambo"
+                  &quot;Lamborghini Mercy
+                  <br></br>
+                  Your chick she look so thirsty
+                  <br></br>
+                  I&apos;m in that two seat Lambo&quot;
                 </p>
               </Card.Body>
-              <hr></hr>
-              <div className="button-container mr-auto ml-auto">
-                <Button
-                  className="btn-simple btn-icon"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                  variant="link"
-                >
-                  <i className="fab fa-facebook-square"></i>
-                </Button>
-                <Button
-                  className="btn-simple btn-icon"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                  variant="link"
-                >
-                  <i className="fab fa-twitter"></i>
-                </Button>
-                <Button
-                  className="btn-simple btn-icon"
-                  href="#pablo"
-                  onClick={(e) => e.preventDefault()}
-                  variant="link"
-                >
-                  <i className="fab fa-google-plus-square"></i>
-                </Button>
-              </div>
+              <Card.Footer>
+                <hr></hr>
+                <div className="button-container text-center">
+                  <Button
+                    className="btn-simple btn-icon"
+                    href="#pablo"
+                    onClick={(e) => e.preventDefault()}
+                    variant="link"
+                  >
+                    <i className="fab fa-facebook-square"></i>
+                  </Button>
+                  <Button
+                    className="btn-simple btn-icon"
+                    href="#pablo"
+                    onClick={(e) => e.preventDefault()}
+                    variant="link"
+                  >
+                    <i className="fab fa-twitter"></i>
+                  </Button>
+                  <Button
+                    className="btn-simple btn-icon"
+                    href="#pablo"
+                    onClick={(e) => e.preventDefault()}
+                    variant="link"
+                  >
+                    <i className="fab fa-google-plus-square"></i>
+                  </Button>
+                </div>
+              </Card.Footer>
             </Card>
           </Col>
         </Row>
@@ -212,4 +216,4 @@ function User() {
   );
 }
 
-export default User;
+export default UserProfile;

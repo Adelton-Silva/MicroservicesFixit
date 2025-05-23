@@ -351,8 +351,8 @@ function Dashboard() {
                           </Form.Check>
                         </td>
                         <td>
-                          Sign contract for "What are conference organizers
-                          afraid of?"
+                          Sign contract for &quot;What are conference organizers
+                          afraid of?&quot;
                         </td>
                         <td className="td-actions text-right">
                           <OverlayTrigger
@@ -487,53 +487,6 @@ function Dashboard() {
                           <Form.Check className="mb-1 pl-0">
                             <Form.Check.Label>
                               <Form.Check.Input
-                                defaultChecked
-                                type="checkbox"
-                              ></Form.Check.Input>
-                              <span className="form-check-sign"></span>
-                            </Form.Check.Label>
-                          </Form.Check>
-                        </td>
-                        <td>
-                          Create 4 Invisible User Experiences you Never Knew
-                          About
-                        </td>
-                        <td className="td-actions text-right">
-                          <OverlayTrigger
-                            overlay={
-                              <Tooltip id="tooltip-422471719">
-                                Edit Task..
-                              </Tooltip>
-                            }
-                          >
-                            <Button
-                              className="btn-simple btn-link p-1"
-                              type="button"
-                              variant="info"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </Button>
-                          </OverlayTrigger>
-                          <OverlayTrigger
-                            overlay={
-                              <Tooltip id="tooltip-829164576">Remove..</Tooltip>
-                            }
-                          >
-                            <Button
-                              className="btn-simple btn-link p-1"
-                              type="button"
-                              variant="danger"
-                            >
-                              <i className="fas fa-times"></i>
-                            </Button>
-                          </OverlayTrigger>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <Form.Check className="mb-1 pl-0">
-                            <Form.Check.Label>
-                              <Form.Check.Input
                                 defaultValue=""
                                 type="checkbox"
                               ></Form.Check.Input>
@@ -541,7 +494,7 @@ function Dashboard() {
                             </Form.Check.Label>
                           </Form.Check>
                         </td>
-                        <td>Read "Following makes Medium better"</td>
+                        <td>Read &quot;Following makes Medium better&quot;</td>
                         <td className="td-actions text-right">
                           <OverlayTrigger
                             overlay={

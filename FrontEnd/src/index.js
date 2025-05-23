@@ -16,7 +16,7 @@
 
 */
 import React from "react";
-import ReactDOM from "react-dom/client";
+import ReactDOM from "react-dom/client"; // IMPORTANT: Changed import to 'react-dom/client'
 
 import Login from "views/Login.js";
 
@@ -30,14 +30,15 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import AdminLayout from "layouts/Admin.js";
 
+// Create the root using ReactDOM.createRoot
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
+// Use the root.render() method to render your application
 root.render(
   <BrowserRouter>
     <Switch>
-    <Route path="/login" component={Login} />
+      <Route path="/login" component={Login} />
       <Route path="/admin" render={(props) => <AdminLayout {...props} />} />
-
       <Redirect from="/" to="/login" />
     </Switch>
   </BrowserRouter>

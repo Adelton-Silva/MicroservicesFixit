@@ -1,6 +1,4 @@
 import React from "react";
-// react plugin for creating notifications over the dashboard
-import NotificationAlert from "react-notification-alert";
 // react-bootstrap components
 import {
   Alert,
@@ -17,303 +15,314 @@ import {
 
 function Notifications() {
   const [showModal, setShowModal] = React.useState(false);
-  const notificationAlertRef = React.useRef(null);
-  const notify = (place) => {
-    var color = Math.floor(Math.random() * 5 + 1);
-    var type;
-    switch (color) {
-      case 1:
-        type = "primary";
-        break;
-      case 2:
-        type = "success";
-        break;
-      case 3:
-        type = "danger";
-        break;
-      case 4:
-        type = "warning";
-        break;
-      case 5:
-        type = "info";
-        break;
-      default:
-        break;
-    }
-    var options = {};
-    options = {
-      place: place,
-      message: (
-        <div>
-          <div>
-            Welcome to <b>Light Bootstrap Dashboard React</b> - a beautiful
-            freebie for every web developer.
-          </div>
-        </div>
-      ),
-      type: type,
-      icon: "nc-icon nc-bell-55",
-      autoDismiss: 7,
-    };
-    notificationAlertRef.current.notificationAlert(options);
-  };
   return (
     <>
-      <div className="rna-container">
-        <NotificationAlert ref={notificationAlertRef} />
-      </div>
       <Container fluid>
         <Card>
           <Card.Header>
             <Card.Title as="h4">Notifications</Card.Title>
             <p className="card-category">
-              Handcrafted by our friend and colleague{" "}
-              <a
-                href="https://github.com/EINazare"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Nazare Emanuel-Ioan
-              </a>
-              . Please checkout the{" "}
-              <a
-                href="https://github.com/creativetimofficial/react-notification-alert"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                full documentation.
+              Handcrafted by our friends from{" "}
+              <a target="_blank" rel="noopener noreferrer" href="https://nucleoapp.com/?ref=creativetim">
+                NucleoApp
               </a>
             </p>
           </Card.Header>
           <Card.Body>
+            <Alert variant="info">
+              <span>This is a plain notification</span>
+            </Alert>
+            <Alert variant="info">
+              <button type="button" className="close" data-dismiss="alert">
+                ×
+              </button>
+              <span>This is a notification with close button.</span>
+            </Alert>
+            <Alert variant="info" className="alert-with-icon">
+              <button type="button" className="close" data-dismiss="alert">
+                ×
+              </button>
+              <span data-notify="icon" className="nc-icon nc-bell-55"></span>
+              <span data-notify="message">
+                This is a notification with close button and icon.
+              </span>
+            </Alert>
+            <Alert variant="info" className="alert-with-icon">
+              <button type="button" className="close" data-dismiss="alert">
+                ×
+              </button>
+              <span data-notify="icon" className="nc-icon nc-bell-55"></span>
+              <span data-notify="message">
+                This is a notification with close button and icon and have many
+                lines. You can see that the icon and the close button are
+                always vertically aligned. This is a beautiful notification. So
+                what do you think?
+              </span>
+            </Alert>
             <Row>
               <Col md="6">
-                <h5>
-                  <small>Notifications Style</small>
-                </h5>
-                <Alert variant="info">
-                  <span>This is a plain notification</span>
-                </Alert>
-                <Alert variant="info">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>This is a notification with close button.</span>
-                </Alert>
-                <Alert className="alert-with-icon" variant="info">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span
-                    data-notify="icon"
-                    className="nc-icon nc-bell-55"
-                  ></span>
-                  <span>
-                    This is a notification with close button and icon.
-                  </span>
-                </Alert>
-                <Alert className="alert-with-icon" variant="info">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span
-                    data-notify="icon"
-                    className="nc-icon nc-bell-55"
-                  ></span>
-                  <span>
-                    This is a notification with close button and icon and have
-                    many lines. You can see that the icon and the close button
-                    are always vertically aligned. This is a beautiful
-                    notification. So you don't have to worry about the style.
-                  </span>
-                </Alert>
+                <Card className="card-plain">
+                  <Card.Header>
+                    <Card.Title as="h4">Notification states</Card.Title>
+                  </Card.Header>
+                  <Card.Body>
+                    <Alert variant="info">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span>
+                        <b> Info - </b> This is an info notification.
+                      </span>
+                    </Alert>
+                    <Alert variant="success">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span>
+                        <b> Success - </b> This is a success notification.
+                      </span>
+                    </Alert>
+                    <Alert variant="warning">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span>
+                        <b> Warning - </b> This is a warning notification.
+                      </span>
+                    </Alert>
+                    <Alert variant="danger">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span>
+                        <b> Danger - </b> This is a danger notification.
+                      </span>
+                    </Alert>
+                    <Alert variant="primary">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span>
+                        <b> Primary - </b> This is a primary notification.
+                      </span>
+                    </Alert>
+                  </Card.Body>
+                </Card>
               </Col>
               <Col md="6">
-                <h5>
-                  <small>Notification States</small>
-                </h5>
-                <Alert variant="primary">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>
-                    <b>Primary -</b>
-                    This is a regular notification made with ".alert-primary"
-                  </span>
-                </Alert>
-                <Alert variant="info">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>
-                    <b>Info -</b>
-                    This is a regular notification made with ".alert-info"
-                  </span>
-                </Alert>
-                <Alert variant="success">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>
-                    <b>Success -</b>
-                    This is a regular notification made with ".alert-success"
-                  </span>
-                </Alert>
-                <Alert variant="warning">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>
-                    <b>Warning -</b>
-                    This is a regular notification made with ".alert-warning"
-                  </span>
-                </Alert>
-                <Alert variant="danger">
-                  <button
-                    aria-hidden={true}
-                    className="close"
-                    data-dismiss="alert"
-                    type="button"
-                  >
-                    <i className="nc-icon nc-simple-remove"></i>
-                  </button>
-                  <span>
-                    <b>Danger -</b>
-                    This is a regular notification made with ".alert-danger"
-                  </span>
-                </Alert>
+                <Card className="card-plain">
+                  <Card.Header>
+                    <Card.Title as="h4">Notification states with icons</Card.Title>
+                  </Card.Header>
+                  <Card.Body>
+                    <Alert variant="info" className="alert-with-icon">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span
+                        data-notify="icon"
+                        className="nc-icon nc-bell-55"
+                      ></span>
+                      <span data-notify="message">
+                        <b> Info - </b> This is a regular notification with icon.
+                      </span>
+                    </Alert>
+                    <Alert variant="success" className="alert-with-icon">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span
+                        data-notify="icon"
+                        className="nc-icon nc-bell-55"
+                      ></span>
+                      <span data-notify="message">
+                        <b> Success - </b> This is a regular notification with icon.
+                      </span>
+                    </Alert>
+                    <Alert variant="warning" className="alert-with-icon">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span
+                        data-notify="icon"
+                        className="nc-icon nc-bell-55"
+                      ></span>
+                      <span data-notify="message">
+                        <b> Warning - </b> This is a regular notification with icon.
+                      </span>
+                    </Alert>
+                    <Alert variant="danger" className="alert-with-icon">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span
+                        data-notify="icon"
+                        className="nc-icon nc-bell-55"
+                      ></span>
+                      <span data-notify="message">
+                        <b> Danger - </b> This is a regular notification with icon.
+                      </span>
+                    </Alert>
+                    <Alert variant="primary" className="alert-with-icon">
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="alert"
+                      >
+                        ×
+                      </button>
+                      <span
+                        data-notify="icon"
+                        className="nc-icon nc-bell-55"
+                      ></span>
+                      <span data-notify="message">
+                        <b> Primary - </b> This is a regular notification with icon.
+                      </span>
+                    </Alert>
+                  </Card.Body>
+                </Card>
               </Col>
             </Row>
-            <br></br>
-            <br></br>
             <div className="places-buttons">
               <Row>
-                <Col className="offset-md-3 text-center" md="6">
-                  <Card.Title as="h4">Notifications Places</Card.Title>
-                  <p className="card-category">
-                    <small>Click to view notifications</small>
-                  </p>
+                <Col md="6" className="ml-auto mr-auto">
+                  <Card.Header>
+                    <Card.Title as="h4">Notifications Places</Card.Title>
+                  </Card.Header>
                 </Col>
               </Row>
-              <Row className="justify-content-center">
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("tl")} variant="default">
-                    Top Left
-                  </Button>
-                </Col>
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("tc")} variant="default">
-                    Top Center
-                  </Button>
-                </Col>
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("tr")} variant="default">
-                    Top Right
-                  </Button>
+              <Row>
+                <Col lg="8" className="ml-auto mr-auto">
+                  <Row>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Top Left
+                      </Button>
+                    </Col>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Top Right
+                      </Button>
+                    </Col>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Top Center
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
-              <Row className="justify-content-center">
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("bl")} variant="default">
-                    Bottom Left
-                  </Button>
-                </Col>
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("bc")} variant="default">
-                    Bottom Center
-                  </Button>
-                </Col>
-                <Col lg="3" md="3">
-                  <Button block onClick={() => notify("br")} variant="default">
-                    Bottom Right
-                  </Button>
+              <Row>
+                <Col lg="8" className="ml-auto mr-auto">
+                  <Row>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Bottom Left
+                      </Button>
+                    </Col>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Bottom Right
+                      </Button>
+                    </Col>
+                    <Col md="4">
+                      <Button
+                        block
+                        variant="default"
+                        onClick={() => setShowModal(true)}
+                      >
+                        Bottom Center
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </div>
-            <Row>
-              <Col className="text-center" md="12">
-                <h4 className="title">Modal</h4>
-                <Button
-                  className="btn-fill btn-wd"
-                  variant="info"
-                  onClick={() => setShowModal(true)}
-                >
-                  Launch Modal Mini
-                </Button>
-              </Col>
-            </Row>
           </Card.Body>
         </Card>
-        {/* Mini Modal */}
-        <Modal
-          className="modal-mini modal-primary"
-          show={showModal}
-          onHide={() => setShowModal(false)}
-        >
-          <Modal.Header className="justify-content-center">
-            <div className="modal-profile">
-              <i className="nc-icon nc-bulb-63"></i>
-            </div>
-          </Modal.Header>
-          <Modal.Body className="text-center">
-            <p>Always have an access to your profile</p>
-          </Modal.Body>
-          <div className="modal-footer">
-            <Button
-              className="btn-simple"
-              type="button"
-              variant="link"
-              onClick={() => setShowModal(false)}
-            >
-              Back
-            </Button>
-            <Button
-              className="btn-simple"
-              type="button"
-              variant="link"
-              onClick={() => setShowModal(false)}
-            >
-              Close
-            </Button>
-          </div>
-        </Modal>
-        {/* End Modal */}
       </Container>
+      <Modal className="modal-mini modal-primary" show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header className="justify-content-center">
+          <div className="modal-profile">
+            <i className="nc-icon nc-bulb-63"></i>
+          </div>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <p>Always enjoy your stay at our &quot;Paradise&quot; island?</p>
+        </Modal.Body>
+        <Modal.Footer className="text-center">
+          <Button
+            className="btn-simple"
+            onClick={() => setShowModal(false)}
+            variant="link"
+          >
+            Back
+          </Button>
+          <Button
+            className="btn-simple"
+            onClick={() => setShowModal(false)}
+            variant="link"
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }

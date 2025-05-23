@@ -815,3 +815,7 @@
   display: block;
   width: 100%;
 }
+.error-message {
+  color: red;
+  font-weight: bold; /* Opcional: para que o texto fique em negrito */
+}
