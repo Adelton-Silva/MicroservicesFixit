@@ -18,6 +18,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
+import Login from "views/Login.js";
+
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -33,8 +35,10 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>
     <Switch>
+    <Route path="/login" component={Login} />
       <Route path="/admin" render={(props) => <AdminLayout {...props} />} />
-      <Redirect from="/" to="/admin/dashboard" />
+
+      <Redirect from="/" to="/login" />
     </Switch>
   </BrowserRouter>
 );
