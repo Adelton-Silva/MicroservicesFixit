@@ -19,23 +19,36 @@ namespace UserManagementService.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null)
         {
-            var users = await _repository.GetAllUsersAsync();
-            return Ok(users);
+            if (page <= 0 || pageSize <= 0)
+            {
+                return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+            }
+
+            var result = await _repository.GetUsersPaginatedAsync(page, pageSize, search);
+            return Ok(result);
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
-            // Verificar se o usuário já existe
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var existingUser = await _repository.GetUserByUsernameAsync(user.Username);
             if (existingUser != null)
             {
                 return Conflict(new { Message = "User already exists." });
             }
 
-            // Adicionar o usuário, pois ele não existe
             await _repository.AddUserAsync(user);
             return CreatedAtAction(nameof(GetUsers), new { username = user.Username }, user);
         }
