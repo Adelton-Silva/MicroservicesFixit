@@ -40,28 +40,28 @@ const LoginView = () => {
     }
 
     try {
-      // Simulate API call delay
-      console.log('Attempting login with:', { username, password });
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // --- Simulated Backend Authentication Logic ---
-      // In a real app, this would be the response from your server.
-      // The server would ideally tell you *why* the login failed (e.g., "invalid username", "invalid password").
-      // For this example, we'll simulate it:
-      if (username === 'user' && password === 'password') {
-        // SUCCESS
-        console.log('Login successful!');
-        localStorage.setItem('userToken', 'fake-jwt-token');
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+  
+      const data = await response.json();
+      console.log("Login response:", data);
+  
+      if (response.ok) {
+        // Se login for bem-sucedido, salvar token e redirecionar
+        localStorage.setItem('userToken', data.token);
         history.push('/admin/dashboard');
-      } else if (username !== 'user' && password === 'password') {
-        // INCORRECT USERNAME
-        setUsernameError('Incorrect username.');
-      } else if (username === 'user' && password !== 'password') {
-        // INCORRECT PASSWORD
-        setPasswordError('Incorrect password.');
       } else {
-        // BOTH INCORRECT or OTHER GENERAL LOGIN FAILURE
-        setGeneralError('Invalid username or password.'); // General error for catch-all
+        // Tratar erros específicos retornados pela API
+        if (data.message) {
+          setGeneralError(data.message);
+        } else {
+          setGeneralError('Login failed. Please check your credentials.');
+        }
       }
 
     } catch (err) {
@@ -75,7 +75,7 @@ const LoginView = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <img src="/logobase.jpg" alt="Fixit Logo" className="login-logo" />
+        <img src="/logobase-1.png" alt="Fixit Logo" className="login-logo" />
 
         {/* Display general errors at the top if any */}
         {generalError && <p className="error-message top-error">{generalError}</p>}

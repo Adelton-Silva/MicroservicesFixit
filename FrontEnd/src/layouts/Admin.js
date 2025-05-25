@@ -1,31 +1,24 @@
-/*!
+// src/layouts/Admin.js
 
-=========================================================
-* Light Bootstrap Dashboard React - v2.0.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/light-bootstrap-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/light-bootstrap-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React, { Component } from "react";
-import { useLocation, Route, Switch } from "react-router-dom";
+// ... (keep existing imports, except the CSS ones)
+import React from "react"; // Keep this
+import { useLocation, Route, Switch } from "react-router-dom"; // Keep this
 
 import AdminNavbar from "components/Navbars/AdminNavbar";
 import Footer from "components/Footer/Footer";
 import Sidebar from "components/Sidebar/Sidebar";
 import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
 
-import routes from "routes.js";
+import routes from "routes.js"; // Keep this
 
-import sidebarImage from "assets/img/sidebar-3.jpg";
+import sidebarImage from "assets/img/sidebar-3.jpg"; // Keep this
+
+// REMOVE THESE LINES FROM HERE! They belong in index.js
+// import "bootstrap/dist/css/bootstrap.min.css"; // REMOVE
+// import "./assets/css/animate.min.css";       // REMOVE
+// import "./assets/scss/light-bootstrap-dashboard-react.scss?v=2.0.0"; // REMOVE
+// import "./assets/css/demo.css";              // REMOVE
+// import "@fortawesome/fontawesome-free/css/all.min.css"; // REMOVE
 
 function Admin() {
   const [image, setImage] = React.useState(sidebarImage);
@@ -85,4 +78,5 @@ function Admin() {
   );
 }
 
+// ADD THIS LINE AT THE END OF THE FILE!
 export default Admin;

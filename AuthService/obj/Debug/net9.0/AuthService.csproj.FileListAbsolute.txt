@@ -137,3 +137,9 @@ C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\obj\Debug\net9.0\refint\Au
 C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\obj\Debug\net9.0\AuthService.pdb
 C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\obj\Debug\net9.0\AuthService.genruntimeconfig.cache
 C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\obj\Debug\net9.0\ref\AuthService.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\DnsClient.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\MongoDB.Bson.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\MongoDB.Driver.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\SharpCompress.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\Snappier.dll
+C:\Users\adelt\Desktop\MicroservicesFixit\AuthService\bin\Debug\net9.0\ZstdSharp.dll

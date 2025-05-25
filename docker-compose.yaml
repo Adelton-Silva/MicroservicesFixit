@@ -127,12 +127,17 @@ services:
   frontend:
     build:
       context: ./FrontEnd
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: frontend
+    volumes:
+      - ./FrontEnd:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
+      - "3000:3000"
     networks:
       - mynetwork
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 networks:
   mynetwork:

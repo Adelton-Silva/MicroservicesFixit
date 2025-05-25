@@ -1,6 +1,7 @@
 {
   "name": "light-bootstrap-dashboard-react",
   "version": "2.0.1",
+  "proxy": "http://auth_service:5000",
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.15.2",
     "ajv": "^8.16.0",
@@ -8,6 +9,7 @@
     "chartist": "0.10.1",
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.9",
+    "jwt-decode": "^4.0.0",
     "react": "^19.1.0",
     "react-bootstrap": "2.4.0",
     "react-chartist": "0.14.4",

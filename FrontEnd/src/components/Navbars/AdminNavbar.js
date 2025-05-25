@@ -15,14 +15,27 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { Component } from "react";
-import { useLocation } from "react-router-dom";
+import React from "react";
+// Importe useHistory do react-router-dom para fazer o redirecionamento
+import { useLocation, useHistory } from "react-router-dom"; // <-- ADICIONE useHistory AQUI
 import { Navbar, Container, Nav, Dropdown, Button } from "react-bootstrap";
+
+// POR FAVOR, REMOVA TODAS ESTAS LINHAS DE IMPORTAÇÃO DE CSS DAQUI!
+// Elas devem estar APENAS em src/index.js para carregar os estilos globalmente.
+// import "../../assets/css/light-bootstrap-dashboard-react.min.css";
+// import "../../assets/css/animate.min.css";
+// import "../../assets/scss/light-bootstrap-dashboard-react.scss?v=2.0.0";
+// import "../../assets/css/demo.css";
+// import "../../assets/css/light-bootstrap-dashboard-react.css";
+// import "../../assets/css/light-bootstrap-dashboard-react.min.css";
+
 
 import routes from "routes.js";
 
 function Header() {
   const location = useLocation();
+  const history = useHistory(); // <-- INICIALIZE useHistory AQUI
+
   const mobileSidebarToggle = (e) => {
     e.preventDefault();
     document.documentElement.classList.toggle("nav-open");
@@ -43,6 +56,21 @@ function Header() {
     }
     return "Brand";
   };
+
+  // --- FUNÇÃO DE LOGOUT ---
+  const handleLogout = () => {
+    // 1. Remover o token do localStorage
+    // Certifique-se de usar a mesma chave que usa para armazenar o token
+    localStorage.removeItem("userToken");
+
+    // 2. Redirecionar para a página de login
+    history.push("/login");
+
+    // Opcional: Se quiser forçar um recarregamento completo da página após o logout
+    // window.location.reload();
+  };
+  // -------------------------
+
   return (
     <Navbar bg="light" expand="lg">
       <Container fluid>
@@ -132,7 +160,7 @@ function Header() {
                 onClick={(e) => e.preventDefault()}
               >
                 <i className="nc-icon nc-zoom-split"></i>
-                <span className="d-lg-block"> Search</span>
+                <span className="d-lg-block"> Search</span>
               </Nav.Link>
             </Nav.Item>
           </Nav>
@@ -196,7 +224,8 @@ function Header() {
               <Nav.Link
                 className="m-0"
                 href="#pablo"
-                onClick={(e) => e.preventDefault()}
+                // Substitua o onClick existente para chamar a função de logout
+                onClick={handleLogout} // <-- MUDANÇA CRÍTICA AQUI!
               >
                 <span className="no-icon">Log out</span>
               </Nav.Link>
