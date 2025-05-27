@@ -24,9 +24,54 @@ public class MachineController : ControllerBase
 
     // GET: api/machine_models
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Machine>>> GetMachine()
+    public async Task<ActionResult<IEnumerable<Machine>>> GetMachine(
+        [FromQuery] int? machine_mod_id,
+        [FromQuery] int? company_id,
+        [FromQuery] string? serial_number,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10
+    )
     {
-        return await _context.Machines.ToListAsync();
+        if (page <= 0 || pageSize <= 0)
+        {
+            return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+        }
+
+        var query = _context.Machines.AsQueryable();
+
+        if (!string.IsNullOrEmpty(serial_number))
+        {
+            query = query.Where(a => a.serial_number != null && a.serial_number.Contains(serial_number));
+        } 
+        if (machine_mod_id.HasValue)
+        {
+            query = query.Where(a => a.Machine_mod_id == machine_mod_id.Value);
+        } 
+        if (company_id.HasValue)
+        {
+        var company = await _companyContext.Companies.FindAsync(company_id.Value);
+        if (company != null)
+        {
+            query = query.Where(a => a.Company_id == company_id.Value);
+        }
+        } 
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        var machines = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            Data = machines
+        });
     }
 
     // GET: api/machine_models/5
@@ -52,7 +97,7 @@ public class MachineController : ControllerBase
             return BadRequest(ModelState);
         }
         var machineModExists = _machineModContext.Machine_mods.Any(mm => mm.Id == machine.Machine_mod_id);
-        if (!machineModExists )
+        if (!machineModExists)
         {
             return BadRequest("The machine model does not exist.");
         }
@@ -80,7 +125,7 @@ public class MachineController : ControllerBase
             return BadRequest(ModelState);
         }
         var machineModExists = _machineModContext.Machine_mods.Any(mm => mm.Id == machine.Machine_mod_id);
-        if (!machineModExists )
+        if (!machineModExists)
         {
             return BadRequest("The machine model does not exist.");
         }

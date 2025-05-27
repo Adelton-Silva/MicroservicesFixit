@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace ServiceManagementService.Models
 {
@@ -9,7 +10,8 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [ForeignKey("company_id")]
-        public int? Company_id { get; set; }    
+        [Required]
+        public int? Company_id { get; set; }
 
         [ForeignKey("machine_mod_id")]
         public int? Machine_mod_id { get; set; }
