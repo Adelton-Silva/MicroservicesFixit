@@ -24,28 +24,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Adicionar o serviço de Controllers
-builder.Services.AddControllers(); // ADICIONADO!
+builder.Services.AddControllers();
+
+// Configurar CORS para permitir requisições do frontend React
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
 
 // Serviços personalizados
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddSingleton<RabbitMQService>();
 
 // Adicionar Swagger
-builder.Services.AddEndpointsApiExplorer(); 
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Middlewares: a ordem importa!
-app.UseAuthentication(); // Primeiro, a autenticação
-app.UseAuthorization(); // Depois, a autorização
+// Usar CORS antes da autenticação/autorização
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Ativar o Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AuthService v1"));
 
 // Mapear os controladores
-app.MapControllers(); // ADICIONADO!
+app.MapControllers();
 
-// Rodar a aplicação
 app.Run();

@@ -19,6 +19,7 @@ import React from "react";
 // Importe useHistory do react-router-dom para fazer o redirecionamento
 import { useLocation, useHistory } from "react-router-dom"; // <-- ADICIONE useHistory AQUI
 import { Navbar, Container, Nav, Dropdown, Button } from "react-bootstrap";
+import { FiLogOut } from 'react-icons/fi';
 
 // POR FAVOR, REMOVA TODAS ESTAS LINHAS DE IMPORTAÇÃO DE CSS DAQUI!
 // Elas devem estar APENAS em src/index.js para carregar os estilos globalmente.
@@ -59,13 +60,15 @@ function Header() {
 
   // --- FUNÇÃO DE LOGOUT ---
   const handleLogout = () => {
+
+    // Evita que o token continue em cache no fetch/axios
+     window.localStorage.removeItem("userToken");
+     
     // 1. Remover o token do localStorage
-    // Certifique-se de usar a mesma chave que usa para armazenar o token
     localStorage.removeItem("userToken");
 
     // 2. Redirecionar para a página de login
-    history.push("/login");
-
+    window.location.href = "/login"; // força reload completo
     // Opcional: Se quiser forçar um recarregamento completo da página após o logout
     // window.location.reload();
   };
@@ -222,11 +225,10 @@ function Header() {
             </Dropdown>
             <Nav.Item>
               <Nav.Link
-                className="m-0"
-                href="#pablo"
-                // Substitua o onClick existente para chamar a função de logout
+                className="m-0 d-flex align-items-center"
                 onClick={handleLogout} // <-- MUDANÇA CRÍTICA AQUI!
               >
+                <FiLogOut style={{ marginRight: '8px' }}/>
                 <span className="no-icon">Log out</span>
               </Nav.Link>
             </Nav.Item>

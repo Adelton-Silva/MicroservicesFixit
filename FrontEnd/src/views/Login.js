@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import '../assets/css/loginView.css';
+import fetchWrapper from 'utils/fetchWrapper';
 
 const LoginView = () => {
   const history = useHistory();
@@ -15,6 +16,9 @@ const LoginView = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
+
+    // Limpar token anterior
+    localStorage.removeItem("userToken");
 
     // Clear all previous errors before a new attempt
     setUsernameError('');
@@ -54,14 +58,10 @@ const LoginView = () => {
       if (response.ok) {
         // Se login for bem-sucedido, salvar token e redirecionar
         localStorage.setItem('userToken', data.token);
-        history.push('/admin/dashboard');
+        window.location.href = '/admin/dashboard'; 
       } else {
         // Tratar erros específicos retornados pela API
-        if (data.message) {
-          setGeneralError(data.message);
-        } else {
-          setGeneralError('Login failed. Please check your credentials.');
-        }
+        setGeneralError(data.message || 'Login failed. Please check your credentials and try again.');
       }
 
     } catch (err) {
