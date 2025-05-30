@@ -131,8 +131,40 @@ namespace UserManagementService.Repositories
 
             await _users.DeleteOneAsync(u => u.Id == id);
         }
+        public async Task<PagedResult<User>> GetUsersPaginatedAsync(int page, int pageSize, string? search = null)
+        {
+            var filter = Builders<User>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                // Filtro para procurar em múltiplos campos usando expressão regular
+                var regex = new BsonRegularExpression(search, "i"); // "i" = case-insensitive
+                filter = Builders<User>.Filter.Or(
+                    Builders<User>.Filter.Regex(u => u.Username, regex),
+                    Builders<User>.Filter.Regex(u => u.Email, regex)
+                );
+            }
+
+            var totalUsers = await _users.CountDocumentsAsync(filter);
+
+            var users = await _users.Find(filter)
+                                     .Skip((page - 1) * pageSize)
+                                     .Limit(pageSize)
+                                     .ToListAsync();
+
+            return new PagedResult<User>
+            {
+                Items = users,
+                TotalItems = (int)totalUsers,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
 
     }
+
+
 }
 
 
