@@ -36,9 +36,9 @@ public class AppointmentController : ControllerBase
 
     // GET: api/Appointments
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments([FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        return await _context.Appointments.ToListAsync();
+        return await _context.Appointments.ToListAsync(pageNumber, pageSize);
     }
 
     // GET: api/Appointments/5
@@ -165,12 +165,5 @@ public class AppointmentController : ControllerBase
     private bool AppointmentExists(int id)
     {
         return _context.Appointments.Any(e => e.Id == id);
-    }
-
-    // Dummy method to test the connection
-    [HttpGet("hello")]
-    public string Test()
-    {
-        return "Hello World!";
     }
 }

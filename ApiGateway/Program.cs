@@ -1,36 +1,41 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+// Load configuration for Ocelot
+builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
+
+builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = "AuthService", // Emissor do token (AuthService)
+            ValidAudience = "UserManagementService", // Público esperado
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // Pegando a chave do appsettings
         };
-    });
+    }
+);
 
 // Adicionar o serviço de Controllers
+builder.Services.AddOcelot();
 builder.Services.AddControllers(); // ADICIONADO!
-
-// Serviços personalizados
-builder.Services.AddScoped<TokenService>();
 
 var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // Primeiro, a autenticação
+app.UseAuthorization(); // Depois, a autorização
 
-app.MapControllers();
+app.MapControllers(); // ADICIONADO!
+
+// Ocelot handles all routing
+await app.UseOcelot();
 
 app.Run();

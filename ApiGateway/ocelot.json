@@ -1,34 +1,133 @@
 {
-    "Routes": [
-      {
-        "DownstreamPathTemplate": "/api/auth/login",
-        "DownstreamScheme": "http",
-        "DownstreamHostAndPorts": [
-          { "Host": "auth_service", "Port": 80 }
-        ],
-        "UpstreamPathTemplate": "/api/auth/login",
-        "UpstreamHttpMethod": [ "GET" ]
-      },
-      {
-        "DownstreamPathTemplate": "/api/users/{everything}",
-        "DownstreamScheme": "http",
-        "DownstreamHostAndPorts": [
-          { "Host": "user_management_service", "Port": 80 }
-        ],
-        "UpstreamPathTemplate": "/api/users/{everything}",
-        "UpstreamHttpMethod": [ "POST", "GET", "PUT",  "DELETE" ]
-      },
-      {
-        "DownstreamPathTemplate": "/api/appointments/{everything}",
-        "DownstreamScheme": "http",
-        "DownstreamHostAndPorts": [
-          { "Host": "service_management_service", "Port": 80 }
-        ],
-        "UpstreamPathTemplate": "/api/appointments/{everything}",
-        "UpstreamHttpMethod": [ "POST", "GET", "PUT",  "DELETE" ]
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/auth/login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "auth_service", "Port": 5003 }
+      ],
+      "UpstreamPathTemplate": "/api/auth/login",
+      "UpstreamHttpMethod": [ "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "user_management_service", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/api/users/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
       }
-    ],
-    "GlobalConfiguration": {
-      "BaseUrl": "http://localhost:5000"
+    },
+    {
+      "DownstreamPathTemplate": "/api/appointments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/appointments/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/companies/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/companies/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/machine_models/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/machine_models/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/machine_types/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/machine_types/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Parts/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/Parts/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/reviews/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/reviews/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/status/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/status/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/services/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "service_management_service", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/api/services/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
     }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:8088"
   }
+}

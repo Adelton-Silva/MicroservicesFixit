@@ -52,8 +52,6 @@ services:
       context: ./AuthService
       dockerfile: Dockerfile
     container_name: auth_service
-    ports:
-      - "5003:5003"
     networks:
       - mynetwork
     depends_on:
@@ -69,8 +67,8 @@ services:
       context: ./ServiceManagementService
       dockerfile: Dockerfile
     container_name: service_management_service
-    ports:
-      - "5002:5002"
+    # ports:
+    #   - "5002:5002"
     networks:
       - mynetwork
     depends_on:
@@ -106,8 +104,8 @@ services:
       context: ./UserManagementService
       dockerfile: Dockerfile
     container_name: user_management_service
-    ports:
-      - "5001:5001"
+    # ports:
+    #   - "5001:5001"
     networks:
       - mynetwork
     depends_on:
@@ -119,7 +117,7 @@ services:
         condition: service_started
     environment:
       - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
-      - Jwt__Issuer=[ "UserManagementService", "ApiGateway" ]
+      - Jwt__Issuer=AuthService
       - Jwt__Audience=UserManagementService
       - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
       - MongoDbSettings__DatabaseName=UserManagementDB
@@ -131,17 +129,13 @@ services:
       dockerfile: Dockerfile
     container_name: api_gateway
     ports:
-      - "5000:5000"
+      - "8088:8088"
     networks:
       - mynetwork
     depends_on:
       - auth_service
       - user_management_service
       - service_management_service
-    environment:
-      - Jwt__Key=RTGHAKHJS&SUSHSJJSKJSKSLLLALLLJNHG98542152HDJKDLSDLÇSDKKDD58742JKDJHDJKDKDLLDLLDD6KDJKDJJDD
-      - Jwt__Issuer=ApiGateway
-      - Jwt__Audience=AuthService
 
       
 networks:
