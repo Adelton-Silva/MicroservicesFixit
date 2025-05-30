@@ -21,11 +21,47 @@ public class ServiceController : ControllerBase
         _partsContext = partsContext;
     }
 
-     // GET: api/services/
+    // GET: api/services/
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Service>>> GetService()
+    public async Task<ActionResult<IEnumerable<Service>>> GetService(
+        [FromQuery] int? appointment_id,
+        [FromQuery] int? worker_id,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10
+    )
     {
-        return await _context.Services.ToListAsync();
+        if (page <= 0 || pageSize <= 0)
+        {
+            return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+        }
+
+        var query = _context.Services.AsQueryable();
+
+        if (appointment_id.HasValue)
+        {
+            query = query.Where(a => a.Appointment_id == appointment_id.Value);
+        }
+        if (worker_id.HasValue)
+        {
+            query = query.Where(a => a.Worker_id == worker_id.Value);
+        }
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+        var services = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            Data = services
+        });
     }
 
     // GET: api/services/5

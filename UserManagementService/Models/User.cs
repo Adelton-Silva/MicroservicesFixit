@@ -1,26 +1,5 @@
-/*using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-
-namespace UserManagementService.Models
-{
-    public class User
-    {
-        [BsonId] // Define o campo como sendo o identificador
-        public ObjectId Id { get; set; } // Altere para ObjectId
-
-        [BsonElement("username")]
-        public string Username { get; set; }
-
-        [BsonElement("password")]
-        public string Password { get; set; }
-
-        [BsonElement("email")]
-        public string Email { get; set; }
-    }
-}
-*/
-
-using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace UserManagementService.Models
 {
@@ -31,12 +10,17 @@ namespace UserManagementService.Models
         public int Id { get; set; } // Alterado para int
 
         [BsonElement("username")]
+        [Required(ErrorMessage = "Username is required")]
         public string Username { get; set; } = null!;
 
         [BsonElement("password")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = null!;
 
         [BsonElement("email")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = null!;
     }
 }

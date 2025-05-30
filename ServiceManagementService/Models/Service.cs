@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace ServiceManagementService.Models
 {
@@ -9,6 +10,8 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [Column("appointment_id")]
+        [Required]
+
         public int? Appointment_id { get; set; }
 
         [Column("worker_id")]
@@ -17,8 +20,9 @@ namespace ServiceManagementService.Models
         
         [Column("parts_id")]
         public int? Parts_id { get; set; }
-        
+
         [Column("date_started")]
+        [Required]
         public DateOnly? Date_started { get; set; }
         
         [Column("date_finished")]

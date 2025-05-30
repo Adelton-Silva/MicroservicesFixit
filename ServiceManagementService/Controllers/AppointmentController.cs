@@ -36,10 +36,58 @@ public class AppointmentController : ControllerBase
 
     // GET: api/Appointments
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments(
+        [FromQuery] string? title,
+        [FromQuery] int? machineId,
+        [FromQuery] int? clientId,
+        [FromQuery] int? statusId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10
+    )
     {
-        return await _context.Appointments.ToListAsync();
+        if (page <= 0 || pageSize <= 0)
+        {
+            return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+        }
+
+        var query = _context.Appointments.AsQueryable();
+
+        if (!string.IsNullOrEmpty(title))
+        {
+            query = query.Where(a => a.Title != null && a.Title.Contains(title));
+        }
+        if (machineId.HasValue)
+        {
+            query = query.Where(a => a.Machine_id == machineId.Value);
+        }
+        if (clientId.HasValue)
+        {
+            query = query.Where(a => a.Client_id == clientId.Value);
+        }
+        if (statusId.HasValue)
+        {
+            query = query.Where(a => a.Status_id == statusId.Value);
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        var appointments = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            Data = appointments
+        });
     }
+
 
     // GET: api/Appointments/5
     [HttpGet("{id}")]

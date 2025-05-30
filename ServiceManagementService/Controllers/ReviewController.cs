@@ -28,9 +28,55 @@ public class ReviewController : ControllerBase
 
     // GET: api/reviews/
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Review>>> GetReview()
+    public async Task<ActionResult<IEnumerable<Review>>> GetReview(
+    [FromQuery] string? review_text,
+    [FromQuery] int? service_id,
+    [FromQuery] int? client_id,
+    [FromQuery] int? review_star,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10
+    )
     {
-        return await _context.Reviews.ToListAsync();
+         if (page <= 0 || pageSize <= 0)
+        {
+            return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+        }
+
+        var query = _context.Reviews.AsQueryable();
+
+        if (!string.IsNullOrEmpty(review_text))
+        {
+            query = query.Where(a => a.Review_text != null && a.Review_text.Contains(review_text));
+        }
+        if (service_id.HasValue)
+        {
+            query = query.Where(a => a.Service_id == service_id.Value);
+        }
+        if (client_id.HasValue)
+        {
+            query = query.Where(a => a.Client_id == client_id.Value);
+        }
+        if (review_star.HasValue)
+        {
+            query = query.Where(a => a.Review_star == review_star.Value);
+        }
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+         var reviews = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+            
+        return Ok(new
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            Data = reviews
+        });
     }
 
     private int GetUserIdFromToken()
