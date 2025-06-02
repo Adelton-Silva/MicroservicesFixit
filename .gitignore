@@ -1,2 +1,6 @@
 UserManagementService/bin/*/*.*
 UserManagementService/obj/*/*.*
+UserManagementService/obj
+AuthService/obj
+ApiGateway/bin
+ApiGateway/obj
