@@ -6,6 +6,7 @@ import Login from "views/Login.js";
 import AdminLayout from "layouts/Admin.js";
 import PropTypes from 'prop-types';
 import { jwtDecode } from 'jwt-decode'; // <-- IMPORTE jwt-decode
+import { AuthProvider } from "context/AuthContext";
 
 // ... (seus imports de CSS - certifique-se que estão corretos e não duplicados!)
 import "./assets/css/animate.min.css";
@@ -70,6 +71,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <BrowserRouter>
+    <AuthProvider>
     <Switch>
       <Route exact path="/login" component={Login} />
       <PrivateRoute path="/admin" component={AdminLayout} />
@@ -77,8 +79,6 @@ root.render(
         exact
         path="/"
         render={() =>
-          // Verifique se o token existe E se não expirou
-          // Use a mesma lógica do PrivateRoute para consistência
           localStorage.getItem("userToken") !== null && !isTokenExpired(localStorage.getItem("userToken")) ? (
             <Redirect to="/admin/dashboard" />
           ) : (
@@ -87,5 +87,6 @@ root.render(
         }
       />
     </Switch>
+    </AuthProvider>
   </BrowserRouter>
 );

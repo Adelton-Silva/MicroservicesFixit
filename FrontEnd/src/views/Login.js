@@ -40,7 +40,7 @@ const LoginView = () => {
 
     if (hasError) {
       setLoading(false);
-      return; // Stop if client-side validation fails
+      return; 
     }
 
     try {

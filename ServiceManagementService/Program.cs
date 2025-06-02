@@ -49,6 +49,9 @@ builder.Services.AddAuthentication("Bearer")
 // Adicionar serviços do RabbitMQ
 builder.Services.AddSingleton<RabbitMQService>();
 
+// ADD THIS LINE TO REGISTER HTTPCLIENT!
+builder.Services.AddHttpClient();
+
 // Adicionar controllers
 builder.Services.AddControllers();
 
@@ -56,9 +59,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var allowedOrigin = "http://localhost:3000"; // URL do seu React
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins(allowedOrigin)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // necessário se usar autenticação (cookies/token no header)
+        });
+});
+
+
 var app = builder.Build();
 
 // Configurar middlewares
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
