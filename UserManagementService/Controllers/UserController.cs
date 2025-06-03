@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserManagementService.Models;
 using UserManagementService.Repositories;
 using Microsoft.AspNetCore.Authorization;
-using MongoDB.Bson;
+//using MongoDB.Bson;
 
 namespace UserManagementService.Controllers
 {

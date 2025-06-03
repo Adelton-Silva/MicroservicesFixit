@@ -14,7 +14,7 @@ COPY . ./
 RUN dotnet publish -c Release -o /src/app
 
 # Verificar arquivos
-RUN ls -l /src/app
+#RUN ls -l /src/app
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app

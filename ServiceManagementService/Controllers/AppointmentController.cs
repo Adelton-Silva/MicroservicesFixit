@@ -36,9 +36,9 @@ public class AppointmentController : ControllerBase
 
     // GET: api/Appointments
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        return await _context.Appointments.ToListAsync(pageNumber, pageSize);
+        return await _context.Appointments.ToListAsync();
     }
 
     // GET: api/Appointments/5
