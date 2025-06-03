@@ -18,47 +18,42 @@ namespace AuthService.Controllers
             _rabbitMQService = rabbitMQService;
         }
 
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
-        {
-            
-            // Enviar solicitação ao UserManagementService para validar o login
-            var message = JsonSerializer.Serialize(request);
-            _rabbitMQService.SendMessage("auth.login", message);
+       [HttpPost("login")]
+public IActionResult Login([FromBody] LoginRequest request)
+{
+    var message = JsonSerializer.Serialize(request);
 
-            // Receber resposta da fila de validação
-            var response = _rabbitMQService.ReceiveMessage("auth.login.response", TimeSpan.FromSeconds(10));
+    // Usar método que envia a mensagem e aguarda a resposta com correlationId
+    var response = _rabbitMQService.SendAndReceive("auth.login", message, TimeSpan.FromSeconds(10));
 
-            if (string.IsNullOrEmpty(response))
-            {
-                return StatusCode(500, "No response from user management service.");
-            }
+    if (string.IsNullOrEmpty(response))
+    {
+        return StatusCode(500, "No response from user management service.");
+    }
 
-            var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
+    var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
 
-            if (!responseObject.TryGetProperty("Status", out var status) || status.GetString() != "Success")
-            {
-                return Unauthorized("Invalid credentials.");
-            }
+    if (!responseObject.TryGetProperty("Status", out var status) || status.GetString() != "Success")
+    {
+        return Unauthorized("Invalid credentials.");
+    }
 
-            if (!responseObject.TryGetProperty("User", out var user) || user.ValueKind == JsonValueKind.Null)
-            {
-                return Unauthorized("User not found.");
-            }
+    if (!responseObject.TryGetProperty("User", out var user) || user.ValueKind == JsonValueKind.Null)
+    {
+        return Unauthorized("User not found.");
+    }
 
-            // Obter user_id do JSON de resposta
-            int userId = user.GetProperty("Id").GetInt32();
-            string username = user.GetProperty("Username").GetString();
+    int userId = user.GetProperty("Id").GetInt32();
+    string username = user.GetProperty("Username").GetString();
 
-            // Gerar token com userId e username
-            var token = _tokenService.GenerateToken(userId, username);
+    var token = _tokenService.GenerateToken(userId, username ?? "");
 
-            return Ok(new
-            {
-                Token = token,
-                User = user
-            });
-        }
+    return Ok(new
+    {
+        Token = token,
+        User = user
+    });
+}
 
     }
 }

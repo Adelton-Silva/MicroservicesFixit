@@ -1,11 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import axios from 'axios';
 import '../assets/css/loginView.css';
 
 const LoginView = () => {
   const history = useHistory();
-  const { login } = useContext(AuthContext); // << usar função do contexto
+  const { login } = useContext(AuthContext);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -37,24 +38,31 @@ const LoginView = () => {
     }
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+
+      delete axios.defaults.headers.common["Authorization"];
+
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        username,
+        password
       });
 
-      const data = await response.json();
+      const { token } = response.data;
 
-      if (response.ok) {
-        console.log("Token recebido:", data.token);
-        login(data.token); // <- salva o token no contexto
+      if (token) {
+        console.log("Token recebido:", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        login(token); 
         history.push("/admin/dashboard");
       } else {
-        setGeneralError(data.message || 'Login failed.');
+        setGeneralError('Login failed: token not received.');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setGeneralError('Unexpected error. Please try again.');
+      if (err.response && err.response.data && err.response.data.message) {
+        setGeneralError(err.response.data.message);
+      } else {
+        setGeneralError('Unexpected error. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

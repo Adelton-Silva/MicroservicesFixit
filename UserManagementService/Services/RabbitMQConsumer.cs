@@ -1,11 +1,10 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using System.Text.Json;
 using UserManagementService.Repositories;
 using UserManagementService.Models;
-using System.Text.Json;
 using BCrypt.Net;
-
 
 namespace UserManagementService.Services
 {
@@ -35,23 +34,27 @@ namespace UserManagementService.Services
 
             var connection = factory.CreateConnection();
             var channel = connection.CreateModel();
+
             channel.QueueDeclare(queue: "auth.login", durable: false, exclusive: false, autoDelete: false, arguments: null);
-            channel.QueueDeclare(queue: "auth.login.response", durable: false, exclusive: false, autoDelete: false, arguments: null);
+
             var consumer = new EventingBasicConsumer(channel);
+
             consumer.Received += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
 
+                var props = ea.BasicProperties;
+                var replyProps = channel.CreateBasicProperties();
+                replyProps.CorrelationId = props.CorrelationId;
+
                 using var scope = _scopeFactory.CreateScope();
                 var userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
 
-                // Verificar credenciais
-                var loginRequest = System.Text.Json.JsonSerializer.Deserialize<LoginRequest>(message);
+                var loginRequest = JsonSerializer.Deserialize<LoginRequest>(message);
                 var user = await userRepository.GetUserByUsernameAsync(loginRequest.Username);
 
-                var isAuthenticated = user != null && BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password); // Verify hashed password
-                //var response = isAuthenticated ? "Success" : "Failure";
+                var isAuthenticated = user != null && BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password);
 
                 var response = JsonSerializer.Serialize(new
                 {
@@ -65,16 +68,16 @@ namespace UserManagementService.Services
                     } : null
                 });
 
-                // Enviar resposta
-                //var responseMessage = JsonSerializer.Serialize(user);
                 var responseBytes = Encoding.UTF8.GetBytes(response);
-                channel.BasicPublish(exchange: "", routingKey: "auth.login.response", basicProperties: null, body: responseBytes);
+
+                channel.BasicPublish(exchange: "", routingKey: props.ReplyTo, basicProperties: replyProps, body: responseBytes);
+
+                channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             };
 
-            channel.BasicConsume(queue: "auth.login", autoAck: true, consumer: consumer);
+            channel.BasicConsume(queue: "auth.login", autoAck: false, consumer: consumer);
 
             return Task.CompletedTask;
         }
     }
 }
-

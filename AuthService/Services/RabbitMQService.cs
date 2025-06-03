@@ -1,79 +1,101 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AuthService.Services
 {
-    public class RabbitMQService
+    public class RabbitMQService : IDisposable
     {
         private readonly string? _hostName;
         private readonly string? _userName;
         private readonly string? _password;
-        
-         private readonly string? _port;
+        private readonly int _port;
+
+        private IConnection? _connection;
+        private IModel? _channel;
+        private string? _replyQueueName;
+        private EventingBasicConsumer? _consumer;
 
         public RabbitMQService(IConfiguration configuration)
         {
             _hostName = configuration["RabbitMQ:Host"];
             _userName = configuration["RabbitMQ:Username"];
             _password = configuration["RabbitMQ:Password"];
-            _port = configuration["RabbitMQ:Port"];
+            _port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672");
+
+            InitializeRabbitMQ();
         }
 
-        public void SendMessage(string queueName, string message)
+        private void InitializeRabbitMQ()
         {
-            var factory = new ConnectionFactory
-            {
-                HostName = _hostName,
-                Port = int.Parse(_port),
-                UserName = _userName,
-                Password = _password
-            };
-
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
-
-            var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: null, body: body);
-        }
-
-        public string ReceiveMessage(string queueName, TimeSpan timeout)
-        {
-            var factory = new ConnectionFactory
+            var factory = new ConnectionFactory()
             {
                 HostName = _hostName,
                 UserName = _userName,
-                Password = _password
+                Password = _password,
+                Port = _port,
+                DispatchConsumersAsync = false
             };
 
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            channel.QueueDeclare(queue: queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
 
+            // Cria fila temporária exclusiva para receber respostas
+            _replyQueueName = _channel.QueueDeclare(queue: "", exclusive: true).QueueName;
+
+            _consumer = new EventingBasicConsumer(_channel);
+            _channel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _consumer);
+        }
+
+        public string SendAndReceive(string queueName, string message, TimeSpan timeout)
+        {
+            if (_channel == null || _replyQueueName == null || _consumer == null)
+                throw new InvalidOperationException("RabbitMQ is not initialized properly.");
+
+            var correlationId = Guid.NewGuid().ToString();
             var tcs = new TaskCompletionSource<string>();
-            var consumer = new EventingBasicConsumer(channel);
-            string? response = null;
 
-            consumer.Received += (model, ea) =>
+            // Configura o evento para receber a resposta e filtrar por CorrelationId
+            void OnReceived(object sender, BasicDeliverEventArgs ea)
             {
-                var body = ea.Body.ToArray();
-                response = Encoding.UTF8.GetString(body);
-                tcs.SetResult(response);
-                channel.BasicAck(ea.DeliveryTag, multiple: false);
-            };
+                if (ea.BasicProperties.CorrelationId == correlationId)
+                {
+                    var body = ea.Body.ToArray();
+                    var response = Encoding.UTF8.GetString(body);
+                    tcs.TrySetResult(response);
+                }
+            }
 
-            channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+            _consumer.Received += OnReceived;
 
-            var task = tcs.Task;
-            if (Task.WaitAny(new[] { task }, timeout) == 0)
+            var props = _channel.CreateBasicProperties();
+            props.CorrelationId = correlationId;
+            props.ReplyTo = _replyQueueName;
+
+            var bodyMessage = Encoding.UTF8.GetBytes(message);
+            _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: props, body: bodyMessage);
+
+            // Espera pela resposta com timeout
+            if (tcs.Task.Wait(timeout))
             {
-                return task.Result;
+                _consumer.Received -= OnReceived;
+                return tcs.Task.Result;
             }
             else
             {
-                return string.Empty;
+                _consumer.Received -= OnReceived;
+                return string.Empty; // ou lance exceção de timeout
             }
+        }
+
+        public void Dispose()
+        {
+            _channel?.Close();
+            _channel?.Dispose();
+            _connection?.Close();
+            _connection?.Dispose();
         }
     }
 }

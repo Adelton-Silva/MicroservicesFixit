@@ -3,7 +3,8 @@ import { useLocation, useHistory } from "react-router-dom";
 import { Navbar, Container, Nav, Dropdown, Button } from "react-bootstrap";
 import { FiLogOut } from 'react-icons/fi';
 import routes from "routes.js";
-import { AuthContext } from "context/AuthContext"; // <- se você tiver isso
+import { AuthContext } from "context/AuthContext"; 
+
 
 function Header() {
   const location = useLocation();
@@ -33,10 +34,9 @@ function Header() {
   };
 
   const handleLogout = async () => {
-    await logout?.(); // limpa token
+    logout();
     console.log("Logout concluído");
-    // Redirecionar após logout
-    history.replace("/login"); // ou window.location.href = '/login'
+    history.replace("/login"); 
   };
   
 
