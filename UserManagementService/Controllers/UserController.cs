@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserManagementService.Models;
 using UserManagementService.Repositories;
 using Microsoft.AspNetCore.Authorization;
-using MongoDB.Bson;
+//using MongoDB.Bson;
 
 namespace UserManagementService.Controllers
 {
@@ -19,51 +19,53 @@ namespace UserManagementService.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUsers(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? search = null)
+        public async Task<IActionResult> GetUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
-            if (page <= 0 || pageSize <= 0)
+            try
             {
-                return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
+                var users = await _repository.GetAllUsersAsync(pageNumber, pageSize);
+                return Ok(users);
             }
-
-            var result = await _repository.GetUsersPaginatedAsync(page, pageSize, search);
-            return Ok(result);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "An error occurred while retrieving users.",
+                    Details = ex.Message
+                });
+            }
         }
 
-
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var user = await _repository.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+            return Ok(user);
+        }
 
         [HttpPost]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
+            // Verificar se o usuário já existe
             var existingUser = await _repository.GetUserByUsernameAsync(user.Username);
             if (existingUser != null)
             {
                 return Conflict(new { Message = "User already exists." });
             }
 
+            // Adicionar o usuário, pois ele não existe
             await _repository.AddUserAsync(user);
             return CreatedAtAction(nameof(GetUsers), new { username = user.Username }, user);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdate user)
         {
-            // Verificar se o username na URL corresponde ao username do usuário enviado no corpo
-            if (id != user.Id)
-            {
-                return BadRequest(new { Message = "Username mismatch." });
-            }
-
-            // Atualizar o usuário
-            await _repository.UpdateUserByIdAsync(user.Id, user);
+            await _repository.UpdateUserByIdAsync(id, user);
             return Ok("User updated successfully.");
         }
 

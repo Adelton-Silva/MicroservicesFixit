@@ -17,7 +17,7 @@ public class MachineTypeController : ControllerBase
         _context = context;
     }
 
-     // GET: api/machine_types
+    // GET: api/machine_types
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Machine_type>>> GetMachineTypes()
     {
