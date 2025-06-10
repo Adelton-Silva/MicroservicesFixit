@@ -25,7 +25,6 @@ public class MachineController : ControllerBase
     // GET: api/machine_models
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Machine>>> GetMachine(
-        [FromQuery] int? machine_mod_id,
         [FromQuery] int? company_id,
         [FromQuery] string? serial_number,
         [FromQuery] int page = 1,
@@ -43,10 +42,7 @@ public class MachineController : ControllerBase
         {
             query = query.Where(a => a.serial_number != null && a.serial_number.Contains(serial_number));
         } 
-        if (machine_mod_id.HasValue)
-        {
-            query = query.Where(a => a.Machine_mod_id == machine_mod_id.Value);
-        } 
+        
         if (company_id.HasValue)
         {
         var company = await _companyContext.Companies.FindAsync(company_id.Value);
@@ -96,11 +92,6 @@ public class MachineController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        var machineModExists = _machineModContext.Machine_mods.Any(mm => mm.Id == machine.Machine_mod_id);
-        if (!machineModExists)
-        {
-            return BadRequest("The machine model does not exist.");
-        }
         var companyExists = _companyContext.Companies.Any(c => c.Id == machine.Company_id);
         if (!companyExists)
         {
@@ -123,11 +114,6 @@ public class MachineController : ControllerBase
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
-        }
-        var machineModExists = _machineModContext.Machine_mods.Any(mm => mm.Id == machine.Machine_mod_id);
-        if (!machineModExists)
-        {
-            return BadRequest("The machine model does not exist.");
         }
         var companyExists = _companyContext.Companies.Any(c => c.Id == machine.Company_id);
         if (!companyExists)

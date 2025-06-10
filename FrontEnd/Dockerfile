@@ -8,7 +8,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-
 # Copy source code and build
 COPY . .
 RUN npm run build
@@ -16,14 +15,18 @@ RUN npm run build
 # Stage 2: Serve the app with Nginx
 FROM nginx:alpine
 
-# Copy built React app to Nginx's public folder
+# IMPORTANTE: Remover a configuração Nginx padrão primeiro, depois copiar a sua.
+# Isso garante que a sua configuração personalizada é usada e não substituída pela padrão.
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copiar a sua configuração Nginx personalizada para o contentor
+# Este ficheiro deve estar no mesmo diretório que o seu Dockerfile
+COPY nginx.conf /etc/nginx/conf.d/default.conf 
+# Copiar a aplicação React construída para a pasta pública do Nginx
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy custom Nginx config (optional)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Expor a porta 80 (padrão do Nginx)
+EXPOSE 80
 
-# Expose port
-EXPOSE 3000
-
-# Start Nginx
+# Iniciar o Nginx em primeiro plano
 CMD ["nginx", "-g", "daemon off;"]

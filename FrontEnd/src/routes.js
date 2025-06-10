@@ -17,12 +17,13 @@
 */
 import Dashboard from "views/Dashboard.js";
 import UserProfile from "views/UserProfile.js";
-import TableList from "views/Service.js";
+import ServiceDashboardPage from "views/ServiceDashboardPaje.js";
 import Typography from "views/Typography.js";
 import Icons from "views/Icons.js";
 import Maps from "views/Maps.js";
 import Notifications from "views/Notifications.js";
 import Upgrade from "views/Upgrade.js";
+import UserTable from "views/User";
 
 
 const dashboardRoutes = [
@@ -42,7 +43,7 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
-    path: "/user",
+    path: "/profile",
     name: "User Profile",
     icon: "nc-icon nc-circle-09",
     component: UserProfile,
@@ -52,7 +53,14 @@ const dashboardRoutes = [
     path: "/service",
     name: "Services",
     icon: "nc-icon nc-notes",
-    component: TableList,
+    component: ServiceDashboardPage,
+    layout: "/admin"
+  },
+  {
+    path: "/users",
+    name: "Users",
+    icon: "nc-icon nc-circle-09",
+    component: UserTable,
     layout: "/admin"
   },
   {

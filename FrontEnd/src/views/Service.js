@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FaKey, FaUserCog, FaPen, FaTrash } from "react-icons/fa";
+import '../assets/css/app.css';
 
 // react-bootstrap components
 import {
@@ -12,7 +14,8 @@ import {
 
 function ServiceTable() {
   const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true); // Estado de carregamento
+  const [users, setUsers] = useState([]); // <--- NEW: State to store users
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
@@ -23,23 +26,57 @@ function ServiceTable() {
       return;
     }
 
-    axios
-      .get("http://localhost:5002/api/Service?page=1&pageSize=10", {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        }
-      })
-      .then((response) => {
-        console.log("Resposta do backend:", response.data);
-        setServices(response.data.data); // ou response.data, dependendo do formato retornado
+    const fetchServices = axios.get("http://localhost:3000/api/service?pageNumber=1&pageSize=10", {
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+
+    // <--- NEW: Fetch users as well
+    const fetchUsers = axios.get("http://localhost:3000/api/users?pageNumber=1&pageSize=10", { 
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+
+    Promise.all([fetchServices, fetchUsers]) // Wait for both requests to complete
+      .then(([servicesResponse, usersResponse]) => {
+        console.log("Resposta de Serviços:", servicesResponse.data);
+        console.log("Resposta de Utilizadores:", usersResponse.data);
+
+        // Adjust based on actual API response for services
+        setServices(Array.isArray(servicesResponse.data) ? servicesResponse.data : servicesResponse.data.data || []);
+
+        // <--- NEW: Set users. Assuming users API returns a direct array.
+        setUsers(Array.isArray(usersResponse.data) ? usersResponse.data : usersResponse.data.data || []);
       })
       .catch((error) => {
-        console.error("Erro ao buscar serviços:", error);
+        console.error("Erro ao buscar dados:", error.response ? error.response.data : error.message);
       })
       .finally(() => {
-        setLoading(false); // Sempre finaliza o loading, com sucesso ou erro
+        setLoading(false);
       });
-  }, []);
+  }, []); // Empty dependency array means it runs once on mount
+
+  // <--- NEW: Helper function to get username by ID
+  const getUsernameById = (userId) => {
+    const user = users.find(u => u.id === userId);
+    return user ? user.username : 'Unknown Technician'; // Fallback if user not found
+  };
+  const handlePermission = (service) => {
+    console.log("Permissões para:", service);
+  };
+
+  const handleAssign = (service) => {
+    console.log("Atribuir técnico a:", service);
+  };
+
+  const handleEdit = (service) => {
+    console.log("Editar:", service);
+  };
+
+  const handleDelete = (service) => {
+    if (window.confirm(`Are you sure you want to delete the service? ${service.id}?`)) {
+      console.log("Apagar:", service);
+    }
+  };
+
 
   return (
     <Container fluid>
@@ -47,44 +84,49 @@ function ServiceTable() {
         <Col md="12">
           <Card className="strpied-tabled-with-hover">
             <Card.Header>
-              <Card.Title as="h4">Serviços</Card.Title>
-              <p className="card-category">
-                Lista de serviços obtidos da API
-              </p>
+              <Card.Title as="h4">Services</Card.Title>
+              <p className="card-category">Services List</p>
             </Card.Header>
             <Card.Body className="table-full-width table-responsive px-0">
               {loading ? (
-                <p>Carregando...</p>
+                <p>Loading...</p>
               ) : (
                 <Table className="table-hover table-striped">
                   <thead>
                     <tr>
-                      <th className="border-0">ID</th>
-                      <th className="border-0">Type</th>
-                      <th className="border-0">Technician</th>
-                      <th className="border-0">Parts</th>
-                      <th className="border-0">Date Started</th>
-                      <th className="border-0">Date Finished</th>
-                      <th className="border-0">Motive_Rescheduled</th>
+                      <th className="border-0" >ID</th>
+                      <th className="border-0" >Priority</th>
+                      <th className="border-0">Category</th>
+                      <th className="border-0">Client</th>
+                      <th className="border-0">Machine</th>
+                      <th className="border-0">Technician Responsable</th> {/* Changed header */}
                       <th className="border-0">Status</th>
+                      <th className="border-0" >Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {services.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="text-center">Nenhum serviço encontrado.</td>
+                        <td colSpan="8" className="text-center">No services found.</td>
                       </tr>
                     ) : (
                       services.map((service) => (
                         <tr key={service.id}>
                           <td>{service.id}</td>
-                          <td>{service.appointment?.title || service.appointment_id}</td>
-                          <td>{service.worker_id}</td>
-                          <td>{service.parts?.name || service.parts_id}</td>
-                          <td>{service.date_started}</td>
-                          <td>{service.date_finished}</td>
-                          <td>{service.motive_rescheduled}</td>
-                          <td>{service.status?.description || service.status_id}</td>
+                           <td>{service.priority}</td>
+                          <td>{service.category}</td>
+                          <td>{service.companyName}</td>
+                          <td>{service.machine?.type}</td>
+                          <td>{getUsernameById(service.workerId)}</td>
+                          <td>{service.status}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                              <FaKey title="Permissões" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
+                              <FaUserCog title="Atribuir Técnico" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
+                              <FaPen title="Editar" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
+                              <FaTrash title="Apagar" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
+                            </div>
+                          </td>
                         </tr>
                       ))
                     )}

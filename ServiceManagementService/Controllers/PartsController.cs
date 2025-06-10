@@ -12,23 +12,23 @@ namespace csharp_crud_api.Controllers;
 public class PartsController : ControllerBase
 {
     private readonly PartsContext _context;
-    public PartsController(PartsContext context) 
+    public PartsController(PartsContext context)
     {
         _context = context;
     }
 
-     // GET: api/Parts
+    // GET: api/Parts
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Parts>>> GetParts()
     {
-        return await _context.Partss.ToListAsync();
+        return await _context.Parts.ToListAsync(); // <--- Corrected
     }
 
     // GET: api/Parts/5
     [HttpGet("{id}")]
     public async Task<ActionResult<Parts>> GetParts(int id)
     {
-        var parts = await _context.Partss.FindAsync(id);
+        var parts = await _context.Parts.FindAsync(id); // <--- Corrected
 
         if (parts == null)
         {
@@ -42,13 +42,13 @@ public class PartsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Parts>> PostParts(Parts parts)
     {
-        _context.Partss.Add(parts);
+        _context.Parts.Add(parts); // <--- Corrected
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetParts), new { id = parts.Id }, parts);
     }
 
-     // PUT: api/parts/5
+    // PUT: api/parts/5
     [HttpPut("{id}")]
     public async Task<IActionResult> PutParts(int id, Parts parts)
     {
@@ -65,6 +65,7 @@ public class PartsController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
+            // The PartsExists check should also use _context.Parts
             if (!PartsExists(id))
             {
                 return NotFound();
@@ -82,13 +83,13 @@ public class PartsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteParts(int id)
     {
-        var parts = await _context.Partss.FindAsync(id);
+        var parts = await _context.Parts.FindAsync(id); // <--- Corrected
         if (parts == null)
         {
             return NotFound();
         }
 
-        _context.Partss.Remove(parts);
+        _context.Parts.Remove(parts); // <--- Corrected
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -96,7 +97,7 @@ public class PartsController : ControllerBase
 
     private bool PartsExists(int id)
     {
-        return _context.Partss.Any(e => e.Id == id);
+        return _context.Parts.Any(e => e.Id == id); // <--- Corrected
     }
 
 }

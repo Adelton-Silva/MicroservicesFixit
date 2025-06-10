@@ -41,7 +41,7 @@ const LoginView = () => {
 
       delete axios.defaults.headers.common["Authorization"];
 
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post('/api/auth/login', {
         username,
         password
       });

@@ -1,15 +1,14 @@
 using ServiceManagementService.Data;
 using ServiceManagementService.Models;
+using ServiceManagementService.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http;
-using System.Text.Json; // <--- FIX 1: Add this using directive for JsonSerializer
-// Make sure you have using ServiceManagementService.Models; at the top
-// if WorkerDto and ServiceResponseDto are in that namespace.
-// If you created a 'Dtos' folder and namespace, use 'using ServiceManagementService.Dtos;'
+using System.Text.Json;
+using System.Text.Json.Serialization; // Adicionado para JsonIgnoreCondition
 
-namespace csharp_crud_api.Controllers;
+namespace ServiceManagementService.Controllers;
 
 [Authorize]
 [ApiController]
@@ -17,57 +16,59 @@ namespace csharp_crud_api.Controllers;
 public class ServiceController : ControllerBase
 {
     private readonly ServiceContext _context;
-    private readonly AppointmentContext _appointmentContext;
+    private readonly CompanyContext _companyContext;
     private readonly PartsContext _partsContext;
     
     private readonly HttpClient _httpClient;
 
     public ServiceController(
         ServiceContext context,
-        AppointmentContext appointmentContext,
+        CompanyContext companyContext,
         PartsContext partsContext,
         HttpClient httpClient)
     {
         _context = context;
-        _appointmentContext = appointmentContext;
+        _companyContext = companyContext;
         _partsContext = partsContext;
         _httpClient = httpClient;
 
-        // FIX 6: Set BaseAddress to the root of the other service.
-        // The "api/users/" part should be in the GetAsync call.
         _httpClient.BaseAddress = new Uri("http://localhost:5001/"); 
     }
 
-  
     private async Task<WorkerDto?> GetWorkerDetails(int id)
     {
         try
         {
             Console.WriteLine($"DEBUG: Attempting to fetch worker details for ID: {id}");
-            string requestUrl = $"api/users/{id}"; // This was the line that was missing/misplaced
-
-            Console.WriteLine($"DEBUG: Full request URL: {_httpClient.BaseAddress}{requestUrl}"); // This line now works
-
-            var response = await _httpClient.GetAsync(requestUrl); // Use requestUrl here
+            string requestUrl = $"api/users/{id}";
 
             Console.WriteLine($"DEBUG: Full request URL: {_httpClient.BaseAddress}{requestUrl}");
 
+            var response = await _httpClient.GetAsync(requestUrl);
+
+            Console.WriteLine($"DEBUG: HTTP Response Status: {response.StatusCode}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"DEBUG: HTTP Response Content: {await response.Content.ReadAsStringAsync()}");
+                return null;
+            }
 
             var json = await response.Content.ReadAsStringAsync(); 
             var worker = JsonSerializer.Deserialize<WorkerDto>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return worker;
         }
-        catch (HttpRequestException ex) // FIX 3: Correct variable name for the exception
+        catch (HttpRequestException ex)
         {
             Console.WriteLine($"Error getting user with id {id}: {ex.Message}"); 
-            return null; // Return null if an error occurs
+            return null;
         }
     }
 
     // GET: api/services/
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ServiceResponseDto>>> GetService( // Changed return type to ServiceResponseDto
-        [FromQuery] int? appointment_id,
+    public async Task<ActionResult<IEnumerable<ServiceDto>>> GetService(
+        [FromQuery] string? priority,
+        [FromQuery] int? company_id,
         [FromQuery] int? worker_id,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10
@@ -79,18 +80,19 @@ public class ServiceController : ControllerBase
         }
 
         var query = _context.Services
-            .Include(s => s.Appointment)
+            .Include(s => s.Company)
             .Include(s => s.Parts)
             .Include(s => s.Status)
+            .Include(s => s.Machine)
             .AsQueryable();
 
-        if (appointment_id.HasValue)
+        if (company_id.HasValue)
         {
-            query = query.Where(a => a.Appointment_id == appointment_id.Value);
+            query = query.Where(a => a.CompanyId == company_id.Value);
         }
         if (worker_id.HasValue)
         {
-            query = query.Where(a => a.Worker_id == worker_id.Value);
+            query = query.Where(a => a.WorkerId == worker_id.Value);
         }
 
         var totalItems = await query.CountAsync();
@@ -101,33 +103,40 @@ public class ServiceController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
-        var serviceDtos = new List<ServiceResponseDto>();
+        var serviceDtos = new List<ServiceDto>();
         foreach (var service in services)
         {
             WorkerDto? workerDetails = null;
-            if (service.Worker_id.HasValue)
+            // A chamada para GetWorkerDetails para enriquecer o DTO ainda ocorre aqui para GET
+            // Se o UserManagementService não estiver disponível, TechnicianName será nulo.
+            if (service.WorkerId.HasValue)
             {
-                // FIX 4: Call GetWorkerDetails (the correct helper method name)
-                workerDetails = await GetWorkerDetails(service.Worker_id.Value); 
+                workerDetails = await GetWorkerDetails(service.WorkerId.Value); 
             }
 
-            serviceDtos.Add(new ServiceResponseDto
+            serviceDtos.Add(new ServiceDto
             {
                 Id = service.Id,
-                Appointment_id = service.Appointment_id,
-                Worker_id = service.Worker_id, // FIX 5: Changed from service.user_id to service.Worker_id
-                WorkerName = workerDetails?.Name, // FIX 5: Changed from service.user_id to service.Worker_id
-                Parts_id = service.Parts_id,
-                Date_started = service.Date_started,
-                Date_finished = service.Date_finished,
-                Motive_rescheduled = service.Motive_rescheduled,
-                Status_id = service.Status_id,
-                StatusName = service.Status?.Description, 
-                Client_signature = service.Client_signature,
-                Created_date = service.Created_date,
-                Modified_date = service.Modified_date,
-                Appointment = service.Appointment,
-                Parts = service.Parts
+                Priority = service.Priority,
+                Category = service.Category,
+                CompanyId = service.CompanyId,
+                CompanyName = service.Company?.Name,
+                Company = service.Company,
+                WorkerId = service.WorkerId,
+                TechnicianName = workerDetails?.Name,
+                PartsId = service.PartsId,
+                DateStarted = service.DateStarted,
+                DateFinished = service.DateFinished,
+                MotiveRescheduled = service.MotiveRescheduled,
+                StatusId = service.StatusId,
+                Status = service.Status?.Description,
+                ClientSignature = service.ClientSignature,
+                CreatedDate = service.CreatedDate,
+                ModifiedDate = service.ModifiedDate,
+                Parts = service.Parts,
+                MachineId = service.MachineId,
+                Machine = service.Machine,
+                Description = service.Description
             });
         }    
 
@@ -143,10 +152,13 @@ public class ServiceController : ControllerBase
 
     // GET: api/services/5
     [HttpGet("{id}")]
-    // FIX 7: Changed return type to ServiceResponseDto
-    public async Task<ActionResult<ServiceResponseDto>> GetServive(int id) 
+    public async Task<ActionResult<ServiceDto>> GetServive(int id)
     {
-        var service = await _context.Services.FindAsync(id);
+        var service = await _context.Services
+            .Include(s => s.Company)
+            .Include(s => s.Parts)
+            .Include(s => s.Status)
+            .FirstOrDefaultAsync(s => s.Id == id);
 
         if (service == null)
         {
@@ -154,31 +166,34 @@ public class ServiceController : ControllerBase
         }
 
         WorkerDto? workerDetails = null;
-        if (service.Worker_id.HasValue)
+        if (service.WorkerId.HasValue)
         {
-            // FIX 4: Call GetWorkerDetails (the correct helper method name)
-            workerDetails = await GetWorkerDetails(service.Worker_id.Value);
+            workerDetails = await GetWorkerDetails(service.WorkerId.Value);
         }
 
-        // Return a ServiceResponseDto instead of raw Service model
-        return Ok(new ServiceResponseDto
+        return Ok(new ServiceDto
         {
             Id = service.Id,
-            Appointment_id = service.Appointment_id,
-            Worker_id = service.Worker_id,
-            WorkerName = workerDetails?.Name,
-            Parts_id = service.Parts_id,
-            Date_started = service.Date_started,
-            Date_finished = service.Date_finished,
-            Motive_rescheduled = service.Motive_rescheduled,
-            Status_id = service.Status_id,
-            StatusName = service.Status?.Description,
-            Client_signature = service.Client_signature,
-            Created_date = service.Created_date,
-            Modified_date = service.Modified_date,
-            // Include related local entities if needed in the DTO
-            Appointment = service.Appointment,
-            Parts = service.Parts
+            Priority = service.Priority,
+            Category = service.Category,
+            CompanyId = service.CompanyId,
+            CompanyName = service.Company?.Name,
+            Company = service.Company,
+            WorkerId = service.WorkerId,
+            TechnicianName = workerDetails?.Name,
+            PartsId = service.PartsId,
+            DateStarted = service.DateStarted,
+            DateFinished = service.DateFinished,
+            MotiveRescheduled = service.MotiveRescheduled,
+            StatusId = service.StatusId,
+            Status = service.Status?.Description,
+            ClientSignature = service.ClientSignature,
+            CreatedDate = service.CreatedDate,
+            ModifiedDate = service.ModifiedDate,
+            Parts = service.Parts,
+            MachineId = service.MachineId,
+            Machine = service.Machine,
+            Description = service.Description
         });
     }
 
@@ -186,37 +201,70 @@ public class ServiceController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Service>> PostService(Service service)
     {
+        Console.WriteLine($"DEBUG: PostService received. ModelState.IsValid: {ModelState.IsValid}");
+        Console.WriteLine($"DEBUG: Received Service CompanyId (raw): {service.CompanyId}");
+        Console.WriteLine($"DEBUG: Received Service WorkerId (raw): {service.WorkerId}");
+        Console.WriteLine($"DEBUG: Received Service PartsId (raw): {service.PartsId}");
+        Console.WriteLine($"DEBUG: Received Service Category: '{service.Category ?? "NULL"}'");
+
         if (!ModelState.IsValid)
         {
+            Console.WriteLine("DEBUG: ModelState is invalid. Errors:");
+            foreach (var modelStateEntry in ModelState.Values)
+            {
+                foreach (var error in modelStateEntry.Errors)
+                {
+                    Console.WriteLine($"- {error.ErrorMessage}");
+                }
+            }
             return BadRequest(ModelState);
         }
 
-        var appointmentExists = await _appointmentContext.Appointments.AnyAsync(st => st.Id == service.Appointment_id);
-        if (!appointmentExists)
+        // --- Validação da empresa ---
+        if (!service.CompanyId.HasValue) 
         {
-            return BadRequest("The appointment does not exist.");
+            Console.WriteLine("DEBUG: CompanyId is NULL. Returning BadRequest: 'Company ID is required.'");
+            return BadRequest("Company ID is required.");
         }
 
-        var partsExists = await _partsContext.Partss.AnyAsync(m => m.Id == service.Parts_id);
+        var companyCount = await _companyContext.Companies.CountAsync();
+        Console.WriteLine($"DEBUG: Total companies visible to _companyContext: {companyCount}");
+        
+        var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value);
+        Console.WriteLine($"DEBUG: Company ID {service.CompanyId.Value} exists in DB: {companyExists}");
+        
+        if (!companyExists)
+        {
+            return BadRequest("The company does not exist.");
+        }
+
+        // --- Validação das peças ---
+        if (!service.PartsId.HasValue)
+        {
+            Console.WriteLine("DEBUG: PartsId is NULL. Returning BadRequest: 'Parts ID is required.'");
+            return BadRequest("Parts ID is required.");
+        }
+        var partsExists = await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value);
+        Console.WriteLine($"DEBUG: Parts ID {service.PartsId.Value} exists in DB: {partsExists}");
         if (!partsExists)
         {
             return BadRequest("The parts does not exist.");
         }
 
-        // Validação para Worker_id (relação externa)
-        if (service.Worker_id.HasValue)
+        // --- Validação do trabalhador (MODIFICADO) ---
+        // A chamada HTTP para o UserManagementService e a sua validação foram removidas aqui.
+        // O ServiceManagementService NÃO verificará se o WorkerId existe em outro serviço.
+        // Se o WorkerId for obrigatório para o modelo Service, verifique apenas se tem um valor.
+        if (!service.WorkerId.HasValue)
         {
-            // FIX 4: Call GetWorkerDetails (the correct helper method name)
-            var workerDetails = await GetWorkerDetails(service.Worker_id.Value);
-            if (workerDetails == null)
-            {
-                return BadRequest("The worker does not exist or is unavailable.");
-            }
+            Console.WriteLine("DEBUG: WorkerId is NULL. Returning BadRequest: 'Worker ID is required.'");
+            return BadRequest("Worker ID is required.");
         }
+        // Se o WorkerId não for obrigatório, remova o 'if' acima também.
 
         var utcNow = DateTime.UtcNow;
-        service.Created_date = utcNow;
-        service.Modified_date = utcNow;
+        service.CreatedDate = utcNow;
+        service.ModifiedDate = utcNow;
 
         _context.Services.Add(service);
         await _context.SaveChangesAsync();
@@ -237,30 +285,18 @@ public class ServiceController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var appointmentExists = await _appointmentContext.Appointments.AnyAsync(st => st.Id == service.Appointment_id);
-        if (!appointmentExists)
+        // Validação de CompanyId, PartsId para PUT
+        if (!service.CompanyId.HasValue || !await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value))
         {
-            return BadRequest("The appointment does not exist.");
+            return BadRequest("The company does not exist or Company ID is required.");
+        }
+        if (!service.PartsId.HasValue || !await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value))
+        {
+            return BadRequest("The parts does not exist or Parts ID is required.");
         }
 
-        var partsExists = await _partsContext.Partss.AnyAsync(m => m.Id == service.Parts_id);
-        if (!partsExists)
-        {
-            return BadRequest("The parts does not exist.");
-        }
 
-        // Validação para Worker_id (relação externa)
-        if (service.Worker_id.HasValue)
-        {
-            // FIX 4: Call GetWorkerDetails (the correct helper method name)
-            var workerDetails = await GetWorkerDetails(service.Worker_id.Value);
-            if (workerDetails == null)
-            {
-                return BadRequest("The worker does not exist or is unavailable.");
-            }
-        }
-
-        service.Modified_date = DateTime.UtcNow;
+        service.ModifiedDate = DateTime.UtcNow;
 
         _context.Entry(service).State = EntityState.Modified;
 

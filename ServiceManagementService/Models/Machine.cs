@@ -13,11 +13,18 @@ namespace ServiceManagementService.Models
         [Required]
         public int? Company_id { get; set; }
 
-        [ForeignKey("machine_mod_id")]
-        public int? Machine_mod_id { get; set; }
 
         [Column("serial_number")]    
         public string? serial_number { get; set; }
+
+        [Column("type")]    
+        public string? type { get; set; }
+
+        [Column("brand")]    
+        public string? brand { get; set; }
+
+        [Column("model")]    
+        public string? model { get; set; }
 
         [Column("number_hours")]    
         public int? number_hours { get; set; }
