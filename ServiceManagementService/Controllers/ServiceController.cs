@@ -238,19 +238,6 @@ public class ServiceController : ControllerBase
             return BadRequest("The company does not exist.");
         }
 
-        // --- Validação das peças ---
-        if (!service.PartsId.HasValue)
-        {
-            Console.WriteLine("DEBUG: PartsId is NULL. Returning BadRequest: 'Parts ID is required.'");
-            return BadRequest("Parts ID is required.");
-        }
-        var partsExists = await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value);
-        Console.WriteLine($"DEBUG: Parts ID {service.PartsId.Value} exists in DB: {partsExists}");
-        if (!partsExists)
-        {
-            return BadRequest("The parts does not exist.");
-        }
-
         // --- Validação do trabalhador (MODIFICADO) ---
         // A chamada HTTP para o UserManagementService e a sua validação foram removidas aqui.
         // O ServiceManagementService NÃO verificará se o WorkerId existe em outro serviço.

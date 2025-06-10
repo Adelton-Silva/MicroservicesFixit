@@ -104,14 +104,15 @@ function AddServiceForm() {
     try {
       // Mapear os dados do formulário para o formato da payload que o backend espera
       const servicePayload = {
-        companyId: formData.clientId === "" ? null : parseInt(formData.clientId), // ID da empresa selecionada (cliente)
-        priority: formData.priority,                                        // Prioridade selecionada
-        category: formData.category,                                  // Categoria (manutenção preventiva/corretiva)
-        workerId: formData.workerId === "" ? null : parseInt(formData.workerId), // ID do técnico selecionado
-        partsId: formData.machine === "" ? null : parseInt(formData.machine),     // ID da máquina/peça selecionada
-        date_started: new Date().toISOString().split('T')[0],               // Data de início (formato ISO 8601)
-        status_id: 1,                                                       // Assumindo um status padrão (ex: "Pending")
-        client_signature: formData.observation,                             // Observações
+        companyId: formData.clientId === "" ? null : parseInt(formData.clientId),
+        priority: formData.priority,
+        category: formData.category,
+        PartsId: null,
+        workerId: formData.workerId === "" ? null : parseInt(formData.workerId),
+        machineId: formData.machine === "" ? null : parseInt(formData.machine),
+        date_started: new Date().toISOString().split('T')[0],
+        statusId: 1,
+        description: formData.observation,
       };
 
       console.log("Payload a ser submetido:", servicePayload);
@@ -305,7 +306,7 @@ function AddServiceForm() {
                 <Button
                   className="btn-fill pull-right mt-4"
                   type="submit"
-                  variant="info"
+                  style={{ backgroundColor: "#EE964B", borderColor: "#EE964B", color: "#fff" }}
                 >
                   Save
                 </Button>

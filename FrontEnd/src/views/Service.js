@@ -59,6 +59,7 @@ function ServiceTable() {
     const user = users.find(u => u.id === userId);
     return user ? user.username : 'Unknown Technician'; // Fallback if user not found
   };
+
   const handlePermission = (service) => {
     console.log("Permissões para:", service);
   };
@@ -71,12 +72,28 @@ function ServiceTable() {
     console.log("Editar:", service);
   };
 
-  const handleDelete = (service) => {
-    if (window.confirm(`Are you sure you want to delete the service? ${service.id}?`)) {
-      console.log("Apagar:", service);
+  const handleDelete = async (service) => {
+    if (window.confirm(`Are you sure you want to delete the service ID ${service.id}?`)) {
+      try {
+        const userToken = localStorage.getItem("userToken");
+        if (!userToken) {
+          alert("User token not found. Please log in again.");
+          return;
+        }
+
+        await axios.delete(`http://localhost:3000/api/service/${service.id}`, {
+          headers: { Authorization: `Bearer ${userToken}` }
+        });
+
+        // Atualiza a lista removendo o serviço apagado
+        setServices(prevServices => prevServices.filter(s => s.id !== service.id));
+        alert(`Service ID ${service.id} deleted successfully.`);
+      } catch (error) {
+        console.error("Error deleting service:", error.response ? error.response.data : error.message);
+        alert("Failed to delete service. Please try again.");
+      }
     }
   };
-
 
   return (
     <Container fluid>
@@ -99,7 +116,7 @@ function ServiceTable() {
                       <th className="border-0">Category</th>
                       <th className="border-0">Client</th>
                       <th className="border-0">Machine</th>
-                      <th className="border-0">Technician Responsable</th> {/* Changed header */}
+                      <th className="border-0">Technician Responsable</th>
                       <th className="border-0">Status</th>
                       <th className="border-0" >Actions</th>
                     </tr>
@@ -113,7 +130,7 @@ function ServiceTable() {
                       services.map((service) => (
                         <tr key={service.id}>
                           <td>{service.id}</td>
-                           <td>{service.priority}</td>
+                          <td>{service.priority}</td>
                           <td>{service.category}</td>
                           <td>{service.companyName}</td>
                           <td>{service.machine?.type}</td>
