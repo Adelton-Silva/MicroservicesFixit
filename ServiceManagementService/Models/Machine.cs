@@ -10,9 +10,7 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [ForeignKey("company_id")]
-        [Required]
         public int? Company_id { get; set; }
-
 
         [Column("serial_number")]    
         public string? serial_number { get; set; }

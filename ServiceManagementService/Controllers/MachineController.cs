@@ -8,7 +8,7 @@ namespace csharp_crud_api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/machine")]
 public class MachineController : ControllerBase
 {
     private readonly MachineContext _context;
@@ -60,14 +60,7 @@ public class MachineController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
-        return Ok(new
-        {
-            Page = page,
-            PageSize = pageSize,
-            TotalPages = totalPages,
-            TotalItems = totalItems,
-            Data = machines
-        });
+        return Ok(machines);
     }
 
     // GET: api/machine_models/5
@@ -103,25 +96,45 @@ public class MachineController : ControllerBase
         return CreatedAtAction(nameof(GetMachine), new { id = machine.Id }, machine);
     }
 
-    // PUT: api/machine_models/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutMachine(int id, Machine machine)
+    // PATCH: api/machine_models/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchMachine(int id, Machine machine)
     {
-        if (id != machine.Id)
-        {
-            return BadRequest();
-        }
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-        var companyExists = _companyContext.Companies.Any(c => c.Id == machine.Company_id);
-        if (!companyExists)
-        {
-            return BadRequest("The company does not exist.");
-        }
+        var existingMachine = await _context.Machines.FindAsync(id);
+        if (existingMachine == null)
+            return NotFound("The machine does not exist.");
+            
+        if (machine.Company_id != null)
+            existingMachine.Company_id = machine.Company_id;
+            
+        if(machine.serial_number != null)
+            existingMachine.serial_number = machine.serial_number;
 
-        _context.Entry(machine).State = EntityState.Modified;
+        if(machine.type != null)
+            existingMachine.type = machine.type;
+            
+        if(machine.brand != null)   
+            existingMachine.brand = machine.brand;
+            
+        if(machine.model != null)
+            existingMachine.model = machine.model;
+
+        if (machine.number_hours != null)
+            existingMachine.number_hours = machine.number_hours;
+        
+        if(machine.last_maintenance_date != null)
+            existingMachine.last_maintenance_date = machine.last_maintenance_date;
+        
+        if(machine.Isactive != null)
+            existingMachine.Isactive = machine.Isactive;
+        
+        if(machine.created_date != null)
+            return BadRequest("The created_date cannot be modified.");
+
+        if(machine.modified_date != null)
+            return BadRequest("The created_date cannot be modified.");
+
+        existingMachine.modified_date = DateTime.UtcNow;
 
         try
         {

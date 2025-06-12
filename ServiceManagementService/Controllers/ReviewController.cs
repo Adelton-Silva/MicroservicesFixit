@@ -10,7 +10,7 @@ namespace ServiceManagementService.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/review")]
 public class ReviewController : ControllerBase
 {
     private readonly ReviewContext _context;
@@ -18,11 +18,11 @@ public class ReviewController : ControllerBase
     private readonly RabbitMQService _rabbitMQService;
     private readonly ILogger<ReviewController> _logger; // Logger para debug
 
-    public ReviewController(ReviewContext context, ServiceContext serviceContext, RabbitMQService rabbitMQService, ILogger<ReviewController> logger) 
+    public ReviewController(ReviewContext context, ServiceContext serviceContext, RabbitMQService rabbitMQService, ILogger<ReviewController> logger)
     {
         _context = context;
         _serviceContext = serviceContext;
-        _rabbitMQService = rabbitMQService; 
+        _rabbitMQService = rabbitMQService;
         _logger = logger;
     }
 
@@ -37,7 +37,7 @@ public class ReviewController : ControllerBase
     [FromQuery] int pageSize = 10
     )
     {
-         if (page <= 0 || pageSize <= 0)
+        if (page <= 0 || pageSize <= 0)
         {
             return BadRequest(new { Message = "Page and pageSize must be greater than 0." });
         }
@@ -64,19 +64,12 @@ public class ReviewController : ControllerBase
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-         var reviews = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-            
-        return Ok(new
-        {
-            Page = page,
-            PageSize = pageSize,
-            TotalPages = totalPages,
-            TotalItems = totalItems,
-            Data = reviews
-        });
+        var reviews = await query
+           .Skip((page - 1) * pageSize)
+           .Take(pageSize)
+           .ToListAsync();
+
+        return Ok(reviews);
     }
 
     private int GetUserIdFromToken()
@@ -147,34 +140,59 @@ public class ReviewController : ControllerBase
         {
             return BadRequest("The service does not exist.");
         }
-        
+
         _context.Reviews.Add(review);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
     }
 
-    // PUT: api/reviews/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutReview(int id, Review review)
+    // PATCH: api/reviews/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchReview(int id, Review review)
     {
-        if (id != review.Id)
+        var existingReview = await _context.Reviews.FindAsync(id);
+        if (existingReview == null)
+            return NotFound("The review does not exist.");
+
+        if (review.Service_id.HasValue)
         {
-            return BadRequest();
+            try
+            {
+                var serviceExists = _serviceContext.Services.Any(st => st.Id == review.Service_id.Value);
+                if (!serviceExists)
+                    return BadRequest("The service does not exist.");
+                else
+                    existingReview.Service_id = review.Service_id.Value;
+            }catch (Exception ex)
+            {
+                _logger.LogError($"Erro ao verificar a existência do serviço: {ex.Message}");
+                return StatusCode(500, "Internal server error while checking service existence.");
+            }
         }
 
-        if (!ModelState.IsValid)
+        if (review.Client_id.HasValue)
         {
-            return BadRequest(ModelState);
+            var validate = validateUserId(review.Client_id.Value, out var error);
+
+            _context.Entry(review).State = EntityState.Modified;
+            if (!validate)
+            {
+                if (error.Contains("Timeout"))
+                    return StatusCode(504, error);
+                else
+                    return Unauthorized(error);
+            }
+            existingReview.Client_id = review.Client_id.Value;
         }
 
-        var serviceExists = _serviceContext.Services.Any(st => st.Id == review.Service_id);
-        if (!serviceExists)
-        {
-            return BadRequest("The service does not exist.");
-        }
+        if (review.Review_text != null)
+            existingReview.Review_text = review.Review_text;
 
-        _context.Entry(review).State = EntityState.Modified;
+        if (review.Review_star.HasValue)
+            existingReview.Review_star = review.Review_star.Value;
+
+        review.Modified_date = DateTime.UtcNow;
 
         try
         {
@@ -214,5 +232,34 @@ public class ReviewController : ControllerBase
     private bool ReviewExists(int id)
     {
         return _context.Reviews.Any(e => e.Id == id);
+    }
+    
+     private bool validateUserId(int userId, out string? error)
+    {
+        error = null;
+
+        var message = JsonSerializer.Serialize(new { UserId = userId });
+        _rabbitMQService.SendMessage("user.validate", message);
+
+        // Aguarda a resposta com timeout de 10 segundos
+        var response = _rabbitMQService.ReceiveMessage("user.validate.response", TimeSpan.FromSeconds(10));
+
+        if (string.IsNullOrEmpty(response))
+        {
+            _logger.LogError("Nenhuma resposta recebida do UserManagementService.");
+            error = "Timeout: No response from user management service.";
+            return false; //StatusCode(504, "Timeout: No response from user management service.");
+        }
+
+        var responseObject = JsonSerializer.Deserialize<JsonElement>(response);
+        if (!responseObject.TryGetProperty("Status", out var status) || status.GetString() != "Success")
+        {
+            _logger.LogWarning($"User ID {userId} não encontrado no UserManagementService.");
+            error = "User does not exist.";
+            return false; //Unauthorized("User does not exist.");
+        }
+
+        _logger.LogInformation($"User ID {userId} validado com sucesso.");
+        return true;
     }
 }
