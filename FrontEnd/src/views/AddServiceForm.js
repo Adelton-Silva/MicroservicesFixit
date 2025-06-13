@@ -50,11 +50,11 @@ function AddServiceForm() {
 
     // Definição das chamadas da API para buscar os dados das dropdowns
     // Utilizadores: Aponta para http://localhost:3000/api/users (o que funciona para si)
-    const fetchUsers = axios.get("http://localhost:3000/api/users?pageNumber=1&pageSize=10", config);
+    const fetchUsers = axios.get("/users?pageNumber=1&pageSize=10", config);
     // Clientes: Aponta para http://localhost:3000/api/company (o que funciona para si)
-    const fetchClients = axios.get("http://localhost:3000/api/company?pageNumber=1&pageSize=10", config);
+    const fetchClients = axios.get("/company?pageNumber=1&pageSize=10", config);
     // Máquinas: Aponta para http://localhost:3000/api/machine (usando o endpoint de máquinas)
-    const fetchMachines = axios.get("http://localhost:3000/api/machine?pageNumber=1&pageSize=10", config);
+    const fetchMachines = axios.get("/machine?pageNumber=1&pageSize=10", config);
 
 
     // Executar todas as chamadas API em paralelo
@@ -120,7 +120,7 @@ function AddServiceForm() {
       // Enviar a requisição POST para criar o serviço para o API Gateway
       // CORREÇÃO: Alterado o endpoint para http://localhost:8088/api/service
       const response = await axios.post(
-        "http://localhost:3000/api/service", // Endpoint correto para o API Gateway
+        "/service", // Endpoint correto para o API Gateway
         servicePayload,
         { headers: { Authorization: `Bearer ${userToken}` } }
       );

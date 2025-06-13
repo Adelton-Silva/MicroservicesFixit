@@ -30,12 +30,13 @@ builder.Services.AddControllers(); // ADICIONADO!
 
 var app = builder.Build();
 
+
+// Ocelot handles all routing
+await app.UseOcelot();
 app.UseAuthentication(); // Primeiro, a autenticação
 app.UseAuthorization(); // Depois, a autorização
 
 app.MapControllers(); // ADICIONADO!
 
-// Ocelot handles all routing
-await app.UseOcelot();
 
 app.Run();
