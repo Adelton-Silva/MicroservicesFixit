@@ -24,7 +24,6 @@ function ServiceTable() {
 
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
-  // NEW STATE: To hold the message for the delete confirmation modal
   const [deleteMessage, setDeleteMessage] = useState("");
 
   console.log("selectedService no render:", selectedService);
@@ -34,7 +33,7 @@ function ServiceTable() {
     const userToken = localStorage.getItem("userToken");
 
     if (!userToken) {
-      console.error("Token JWT não encontrado no localStorage!");
+      console.error("JWT token not found in localStorage!");
       setLoading(false);
       return;
     }
@@ -73,9 +72,8 @@ function ServiceTable() {
         setUsers(usersData);
       })
       .catch((error) => {
-        console.error("Erro ao buscar dados:", error.response ? error.response.data : error.message);
-        // Display a general error message if fetching fails
-        setDeleteMessage("Failed to load services. Please try again later.");
+        console.error("Error fetching data:", error.response ? error.response.data : error.message);
+        // This general error message is fine here if fetching initial data fails
       })
       .finally(() => {
         setLoading(false);
@@ -88,17 +86,17 @@ function ServiceTable() {
   };
 
   const handlePermission = (service) => {
-    console.log("Permissões para:", service);
+    console.log("Permissions for:", service);
   };
 
   const handleAssign = (service) => {
-    console.log("Atribuir técnico a:", service);
+    console.log("Assign technician to:", service);
   };
 
   const handleEdit = (service) => {
-    console.log("Editar serviço:", service);
+    console.log("Edit service:", service);
     if (!service) {
-      console.error("Service inválido no handleEdit", service);
+      console.error("Invalid service in handleEdit", service);
       return;
     }
     setSelectedService(service);
@@ -106,9 +104,9 @@ function ServiceTable() {
   };
 
   const handleDelete = (service) => {
-    setServiceToDelete(service); // Store the service to be deleted
+    setServiceToDelete(service);
     setDeleteMessage(""); // Clear any previous messages
-    setShowDeleteConfirmModal(true); // Open the confirmation modal
+    setShowDeleteConfirmModal(true);
   };
 
   const confirmDelete = async () => {
@@ -126,17 +124,11 @@ function ServiceTable() {
       });
 
       setServices(prevServices => prevServices.filter(s => s.id !== serviceToDelete.id));
-      // Set the success message to display in the modal
-      setDeleteMessage(`Service ID ${serviceToDelete.id} deleted successfully.`);
-      // Optionally, you might want to close the modal after a short delay
-      // Or make the "Eliminar" button disappear and show a "Fechar" button
-      // For now, it will remain open with the message until user closes it
+      setDeleteMessage(`Service for company "${serviceToDelete.companyName}" deleted successfully.`);
     } catch (error) {
       console.error("Error deleting service:", error.response ? error.response.data : error.message);
-      // Set the error message to display in the modal
-      setDeleteMessage(`Failed to delete service ID ${serviceToDelete.id}. Please try again.`);
+      setDeleteMessage(`Failed to delete service for company "${serviceToDelete.companyName}". Please try again.`);
     }
-    // No finally block to keep the message visible until manually closed
   };
 
   const cancelDelete = () => {
@@ -196,10 +188,10 @@ function ServiceTable() {
                           <td>{service.status}</td>
                           <td>
                             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                              <FaKey title="Permissões" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
-                              <FaUserCog title="Atribuir Técnico" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
-                              <FaPen title="Editar" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
-                              <FaTrash title="Apagar" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
+                              <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
+                              <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
+                              <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
+                              <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
                             </div>
                           </td>
                         </tr>
@@ -225,22 +217,22 @@ function ServiceTable() {
           <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {deleteMessage ? ( // Display message if it exists
+          {deleteMessage ? (
             <p>{deleteMessage}</p>
-          ) : ( // Otherwise, show the initial confirmation
+          ) : (
             <>
-              Are you sure you want to delete the  **{serviceToDelete?.companyName}** service?
+              Are you sure you want to delete the service for company **{serviceToDelete?.companyName}**?
               <br />
               This action cannot be undone.
             </>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          {deleteMessage ? ( // If there's a message, only show a close button
+        <Modal.Footer className={deleteMessage ? "justify-content-center" : ""}> {/* CONDITIONAL CLASS HERE */}
+          {deleteMessage ? (
             <Button variant="secondary" onClick={cancelDelete}>
               Close
             </Button>
-          ) : ( // Otherwise, show confirm/cancel buttons
+          ) : (
             <>
               <Button variant="secondary" onClick={cancelDelete}>
                 Cancel
@@ -252,6 +244,7 @@ function ServiceTable() {
           )}
         </Modal.Footer>
       </Modal>
+     
     </Container>
   );
 }
