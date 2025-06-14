@@ -1,0 +1,12 @@
+[{
+  "_id": 2,
+  "username": "adelton",
+  "password": "$2a$11$6itQQsLa5/G1AjlOXDC8fe8T97bDGzU3k9bYovUWy2wrYRf4K9tI.",
+  "email": "adelton@gmail.com"
+},
+{
+  "_id": 1,
+  "username": "Rafael",
+  "password": "$2a$11$6itQQsLa5/G1AjlOXDC8fe8T97bDGzU3k9bYovUWy2wrYRf4K9tI.",
+  "email": "a17004@alunos.ipca.pt"
+}]

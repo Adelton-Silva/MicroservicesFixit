@@ -72,6 +72,8 @@ public class ServiceController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceDto>>> GetService(
         [FromQuery] string? priority,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
         [FromQuery] int? company_id,
         [FromQuery] int? worker_id,
         [FromQuery] int page = 1,
@@ -90,6 +92,14 @@ public class ServiceController : ControllerBase
             .Include(s => s.Machine)
             .AsQueryable();
 
+        if (startDate.HasValue && endDate.HasValue && startDate > endDate)
+        {
+            query = query.Where(a => a.DateStarted >= startDate.Value && a.DateStarted <= endDate.Value);
+        }
+        if(!string.IsNullOrEmpty(priority))
+        {
+            query = query.Where(a => a.Priority == priority);
+        }
         if (company_id.HasValue)
         {
             query = query.Where(a => a.CompanyId == company_id.Value);
