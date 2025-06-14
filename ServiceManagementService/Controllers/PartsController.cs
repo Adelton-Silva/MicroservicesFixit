@@ -8,7 +8,7 @@ namespace csharp_crud_api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/parts")]
 public class PartsController : ControllerBase
 {
     private readonly PartsContext _context;
@@ -48,16 +48,19 @@ public class PartsController : ControllerBase
         return CreatedAtAction(nameof(GetParts), new { id = parts.Id }, parts);
     }
 
-    // PUT: api/parts/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutParts(int id, Parts parts)
+    // PATCH: api/parts/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchParts(int id, Parts parts)
     {
-        if (id != parts.Id)
-        {
-            return BadRequest();
-        }
+        var existingParts = await _context.Parts.FindAsync(id);
+        if (existingParts == null)
+            return NotFound("Part not found");
 
-        _context.Entry(parts).State = EntityState.Modified;
+        if(parts.Name != null)
+            existingParts.Name = parts.Name;
+        
+        if(parts.Description != null)
+            existingParts.Description = parts.Description;
 
         try
         {

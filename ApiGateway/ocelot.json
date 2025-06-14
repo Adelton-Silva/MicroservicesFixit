@@ -43,7 +43,7 @@
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/appointments/{everything}",
+      "UpstreamPathTemplate": "/appointments/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -69,7 +69,7 @@
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/machine_models/{everything}",
+      "UpstreamPathTemplate": "/machine_models/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -95,7 +95,7 @@
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/machinetype/{everything}",
+      "UpstreamPathTemplate": "/machinetype/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -103,12 +103,12 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/Parts/{everything}",
+      "DownstreamPathTemplate": "/api/parts/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/Parts/{everything}",
+      "UpstreamPathTemplate": "/parts/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -116,12 +116,12 @@
       }
     },
     {
-      "DownstreamPathTemplate": "/api/reviews/{everything}",
+      "DownstreamPathTemplate": "/api/review/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/reviews/{everything}",
+      "UpstreamPathTemplate": "/review/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
@@ -134,7 +134,7 @@
       "DownstreamHostAndPorts": [
         { "Host": "service_management_service", "Port": 5002 }
       ],
-      "UpstreamPathTemplate": "/api/status/{everything}",
+      "UpstreamPathTemplate": "/status/{everything}",
       "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",

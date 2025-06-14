@@ -8,7 +8,7 @@ namespace csharp_crud_api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/status")]
 public class StatusController : ControllerBase
 {
     private readonly StatusContext _context;
@@ -48,16 +48,18 @@ public class StatusController : ControllerBase
         return CreatedAtAction(nameof(GetStatus), new { id = status.Id }, status);
     }
 
-     // PUT: api/status/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutStatus(int id, Status status)
+     // PATCHA: api/status/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchStatus(int id, Status status)
     {
-        if (id != status.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(status).State = EntityState.Modified;
+        var existingStatus = await _context.Statuss.FindAsync(id);
+        if (existingStatus == null)
+            return NotFound("Status not found");
+        
+        if(status.Description != null)
+            existingStatus.Description = status.Description;
+        
+        existingStatus.Modified_date = DateTime.UtcNow;
 
         try
         {

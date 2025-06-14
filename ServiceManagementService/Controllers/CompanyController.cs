@@ -8,7 +8,7 @@ namespace csharp_crud_api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/company")]
 public class CompanyController : ControllerBase
 {
     private readonly CompanyContext _context;
@@ -70,14 +70,7 @@ public class CompanyController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
-        return Ok(new
-        {
-            Page = page,
-            PageSize = pageSize,
-            TotalPages = totalPages,
-            TotalItems = totalItems,
-            Data = companies
-        });
+        return Ok(companies);
     }
 
 
@@ -91,16 +84,46 @@ public class CompanyController : ControllerBase
         return CreatedAtAction(nameof(GetCompany), new { id = company.Id }, company);
     }
 
-    // PUT: api/companies/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutCompany(int id, Company company)
+    // PATCH: api/companies/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchCompany(int id, Company company)
     {
-        if (id != company.Id)
-        {
-            return BadRequest();
-        }
+         var existingCompany = await _context.Companies.FindAsync(id);
+        if (existingCompany == null)
+            return NotFound("Company not found.");
+        
 
-        _context.Entry(company).State = EntityState.Modified;
+        if (company.Name != null)
+            existingCompany.Name = company.Name;
+        
+        if(company.Nif.HasValue)
+            existingCompany.Nif = company.Nif;
+            
+        if(company.Address != null)
+            existingCompany.Address = company.Address;
+            
+        if(company.Email != null)
+            existingCompany.Email = company.Email;
+            
+        if(company.Phone != null)
+            existingCompany.Phone = company.Phone;
+            
+        if(company.Postal_code != null)
+            existingCompany.Postal_code = company.Postal_code;
+        
+        if(company.Location_reference != null)
+            existingCompany.Location_reference = company.Location_reference;
+
+        if(company.Isactive.HasValue)
+            existingCompany.Isactive = company.Isactive;
+        
+        if(company.Created_date.HasValue)
+            return BadRequest("Created_date cannot be modified.");
+
+        if (company.Modified_date.HasValue)
+            return BadRequest("Modified_date cannot be modified.");
+
+        existingCompany.Modified_date = DateTime.UtcNow;
 
         try
         {

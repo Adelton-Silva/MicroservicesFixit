@@ -12,24 +12,28 @@ namespace ServiceManagementService.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/service")]
 public class ServiceController : ControllerBase
 {
     private readonly ServiceContext _context;
     private readonly CompanyContext _companyContext;
     private readonly PartsContext _partsContext;
-    
+
+    private readonly StatusContext _statusContext;
+
     private readonly HttpClient _httpClient;
 
     public ServiceController(
         ServiceContext context,
         CompanyContext companyContext,
         PartsContext partsContext,
+        StatusContext statusContext,
         HttpClient httpClient)
     {
         _context = context;
         _companyContext = companyContext;
         _partsContext = partsContext;
+        _statusContext = statusContext;
         _httpClient = httpClient;
 
         _httpClient.BaseAddress = new Uri("http://localhost:5001/"); 
@@ -138,16 +142,9 @@ public class ServiceController : ControllerBase
                 Machine = service.Machine,
                 Description = service.Description
             });
-        }    
+        }
 
-        return Ok(new
-        {
-            Page = page,
-            PageSize = pageSize,
-            TotalItems = totalItems,
-            TotalPages = totalPages,
-            Data = serviceDtos
-        });
+        return Ok(serviceDtos);
     }
 
     // GET: api/services/5
@@ -259,33 +256,99 @@ public class ServiceController : ControllerBase
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
     }
 
-    // PUT: api/services/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutService(int id, Service service)
+    // PATCH: api/services/5
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> PatchService(int id, Service service)
     {
-        if (id != service.Id)
+        var existingService = await _context.Services.FindAsync(id);
+        if (existingService == null)
+            return NotFound("The service does not exist.");
+        
+        if(service.Priority != null)
+            existingService.Priority = service.Priority;
+        
+        if(service.Category != null)
+            existingService.Category = service.Category;
+
+        if (service.CompanyId.HasValue)
         {
-            return BadRequest();
-        }
-        if (!ModelState.IsValid)
+            try
+            {
+                var existingCompany = await _companyContext.Companies.FindAsync(service.CompanyId);
+                if (existingCompany.Id == null)
+                    return BadRequest("The company does not exist or Company ID is required.");
+                else
+                    existingService.CompanyId = service.CompanyId;
+            }
+            catch (Exception ex){
+                Console.WriteLine($"Error fetching company with ID {service.CompanyId}: {ex.Message}");
+                return BadRequest("An error occurred while fetching the company.");
+            }
+        }    
+        
+        if(service.WorkerId != null)
         {
-            return BadRequest(ModelState);
+            if (await GetWorkerDetails(service.WorkerId.Value) == null)
+                return BadRequest("Worker ID is required.");
+            else
+                existingService.WorkerId = service.WorkerId.Value;
         }
 
-        // Validação de CompanyId, PartsId para PUT
-        if (!service.CompanyId.HasValue || !await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value))
+        if (service.PartsId != null)
         {
-            return BadRequest("The company does not exist or Company ID is required.");
-        }
-        if (!service.PartsId.HasValue || !await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value))
+            try
+            {
+                if (!service.PartsId.HasValue || !await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value))
+                    return BadRequest("The parts does not exist or Parts ID is required.");
+                else
+                    existingService.PartsId = service.PartsId.Value;
+            }catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching parts with ID {service.PartsId}: {ex.Message}");
+                return BadRequest("An error occurred while fetching the parts.");
+            }
+        }    
+        
+        if(service.DateStarted != null)
+            existingService.DateStarted = service.DateStarted;
+
+        if(service.DateFinished != null)
+            existingService.DateFinished = service.DateFinished;
+
+        if(service.MotiveRescheduled != null)
+            existingService.MotiveRescheduled = service.MotiveRescheduled;
+
+        if(service.Description != null)
+            existingService.Description = service.Description;
+
+        if (service.StatusId != null)
         {
-            return BadRequest("The parts does not exist or Parts ID is required.");
+            try
+            {
+                if (!service.StatusId.HasValue || !await _statusContext.Statuss.AnyAsync(s => s.Id == service.StatusId.Value))
+                    return BadRequest("The status does not exist or Status ID is required.");
+                else
+                    existingService.StatusId = service.StatusId.Value;
+            }catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching status with ID {service.StatusId}: {ex.Message}");
+                return BadRequest("An error occurred while fetching the status.");
+            }
         }
 
+        if(service.MachineId != null)
+            existingService.MachineId = service.MachineId;  
 
-        service.ModifiedDate = DateTime.UtcNow;
+        if(service.ClientSignature != null) 
+            existingService.ClientSignature = service.ClientSignature;
 
-        _context.Entry(service).State = EntityState.Modified;
+        if (service.CreatedDate != null)
+            return BadRequest("CreatedDate cannot be modified.");
+
+        if(service.ModifiedDate != null)
+            return BadRequest("ModifiedDate cannot be modified.");
+
+        existingService.ModifiedDate = DateTime.UtcNow;
 
         try
         {
