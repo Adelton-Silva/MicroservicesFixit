@@ -1,32 +1,16 @@
-# Stage 1: Build the React app
-FROM node:18 AS builder
+# Dockerfile.dev - React (desenvolvimento)
+FROM node:18
 
-# Set working directory
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
 
-# Copy source code and build
+RUN npm install --force
+
 COPY . .
-RUN npm run build
 
-# Stage 2: Serve the app with Nginx
-FROM nginx:alpine
+ENV CHOKIDAR_USEPOLLING=true
 
-# IMPORTANTE: Remover a configuração Nginx padrão primeiro, depois copiar a sua.
-# Isso garante que a sua configuração personalizada é usada e não substituída pela padrão.
-RUN rm /etc/nginx/conf.d/default.conf
+EXPOSE 3000
 
-# Copiar a sua configuração Nginx personalizada para o contentor
-# Este ficheiro deve estar no mesmo diretório que o seu Dockerfile
-COPY nginx.conf /etc/nginx/conf.d/default.conf 
-# Copiar a aplicação React construída para a pasta pública do Nginx
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Expor a porta 80 (padrão do Nginx)
-EXPOSE 80
-
-# Iniciar o Nginx em primeiro plano
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "start"]

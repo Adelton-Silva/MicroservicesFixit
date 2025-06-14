@@ -1,6 +1,7 @@
+// src/index.js
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Switch, useHistory } from "react-router-dom"; // Importe useHistory
 
 import Login from "views/Login.js";
 import AdminLayout from "layouts/Admin.js";
@@ -16,16 +17,25 @@ import "./assets/css/light-bootstrap-dashboard-react.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const App = () => {
+  const history = useHistory(); // Acessa o objeto history
 
-root.render(
-  <BrowserRouter>
-    <AuthProvider>
+  return (
+    // Passa a função push de history como a prop 'navigate'
+    <AuthProvider navigate={history.push}>
       <Switch>
         <Route exact path="/login" component={Login} />
         <PrivateRoute path="/admin" component={AdminLayout} />
         <Route exact path="/" component={RedirectFromRoot} />
       </Switch>
     </AuthProvider>
+  );
+};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+root.render(
+  <BrowserRouter>
+    <App /> {/* Renderiza o componente App que usa useHistory */}
   </BrowserRouter>
 );
