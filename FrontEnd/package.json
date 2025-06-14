@@ -3,10 +3,11 @@
   "version": "2.0.1",
   "proxy": "http://api_gateway:8088",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "5.15.2",
+    "@fortawesome/fontawesome-free": "^5.15.2",
     "ajv": "^8.16.0",
     "axios": "^1.9.0",
     "bootstrap": "^4.6.0",
+    "bootstrap-icons": "^1.13.1",
     "chartist": "0.10.1",
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.9",

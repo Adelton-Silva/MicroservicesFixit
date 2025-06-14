@@ -16,6 +16,7 @@ import "./assets/css/light-bootstrap-dashboard-react.css";
 import "./assets/css/light-bootstrap-dashboard-react.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const App = () => {
   const history = useHistory(); // Acessa o objeto history

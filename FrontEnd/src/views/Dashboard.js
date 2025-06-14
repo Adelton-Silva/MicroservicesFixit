@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ChartistGraph from "react-chartist";
 import {
   Card,
@@ -11,45 +11,89 @@ import {
   OverlayTrigger,
   Tooltip,
 } from "react-bootstrap";
+import axios from "axios";
+import { get } from "jquery";
 
-const Dashboard = () => {
-  const statsCards = [
-    {
-      icon: "nc-icon nc-chart text-warning",
-      category: "Storage",
-      title: "150GB",
-      footer: "Update Now",
-      footerIcon: "fas fa-redo",
-    },
-    {
-      icon: "nc-icon nc-light-3 text-success",
-      category: "Revenue",
-      title: "$1,345",
-      footer: "Last day",
-      footerIcon: "far fa-calendar-alt",
-    },
-    {
-      icon: "nc-icon nc-vector text-danger",
-      category: "Errors",
-      title: "23",
-      footer: "In the last hour",
-      footerIcon: "far fa-clock",
-    },
-    {
-      icon: "nc-icon nc-favourite-28 text-primary",
-      category: "Followers",
-      title: "+45K",
-      footer: "Update now",
-      footerIcon: "fas fa-redo",
-    },
-  ];
+const Dashboard = () => { 
 
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState({
+    Low: 0,
+    Medium: 0,
+    High: 0,
+    Urgent: 0,
+  });
+  
   const tasks = [
     "Update dependencies",
     "Refactor dashboard layout",
     "Fix chart legend issue",
     "Deploy new version",
   ];
+
+
+  useEffect(() => {
+    const userToken = localStorage.getItem("userToken");
+    
+    if (!userToken) {
+      console.error("JWT token not found in localStorage!");
+      setLoading(false);
+      return;
+    }
+
+    // Function to fetch and count records for each priority
+    const fetchCounts = async () => {
+      const priorities = ["Low", "Medium", "High", "Urgent"];
+      const newCounts = {};
+      for (const priority of priorities) {
+        try {
+          const response = await axios.get(`/service?priority=${priority}`, {
+                headers: { Authorization: `Bearer ${userToken}` },
+            }
+          );
+          newCounts[priority] = Array.isArray(response.data)
+            ? response.data.length
+            : 0;
+        } catch (err) {
+          newCounts[priority] = 0;
+        }
+      }
+      setCounts(newCounts);
+    };
+    fetchCounts();
+  }, []);
+
+  const statsCards = [
+    {
+      category: "Priority Low",
+      footer: "See now",
+      color: "DeepSkyBlue",
+      data: counts.Low,
+    },
+    {
+      category: "Priority Medium",
+      footer: "See now",
+      color: "gold",
+      data: counts.Medium,
+    },
+    {
+      category: "Priority High",
+      footer: "See now",
+      color: "orange",
+      data: counts.High,
+    },
+    {
+      category: "Priority Urgent",
+      footer: "See now",
+      color: "red",
+      data: counts.Urgent,
+    },
+  ];
+
+  const redirectToServicePriority = (priority) => {
+    window.location.href = `/admin/service?priority=${priority}`;
+  }
 
   return (
     <Container fluid>
@@ -58,24 +102,19 @@ const Dashboard = () => {
           <Col lg="3" sm="6" key={index}>
             <Card className="card-stats">
               <Card.Body>
-                <Row>
-                  <Col xs="5">
-                    <div className="icon-big text-center">
-                      <i className={card.icon}></i>
-                    </div>
-                  </Col>
-                  <Col xs="7">
-                    <div className="numbers">
-                      <p className="card-category">{card.category}</p>
-                      <Card.Title as="h4">{card.title}</Card.Title>
+                <Row className="d-flex justify-content-center">
+                  <Col xs="6">
+                    <div className="numbers text-center">
+                      <p className="card-category" style={{color: card.color}}>{card.category}</p>
+                      <Card.Title as="h4">{card.data}</Card.Title>
                     </div>
                   </Col>
                 </Row>
               </Card.Body>
-              <Card.Footer>
+              <Card.Footer className="text-center">
                 <hr />
-                <div className="stats">
-                  <i className={`${card.footerIcon} mr-1`}></i>
+                {/* TODO: meter este onClick a funcionar */}
+                <div className="stats" onClick="redirectToServicePriority(card.priority)"> 
                   {card.footer}
                 </div>
               </Card.Footer>
