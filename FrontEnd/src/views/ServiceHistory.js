@@ -13,7 +13,7 @@ import {
   Button,
 } from "react-bootstrap";
 
-function ServiceTable() {
+function ServiceHistory() {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
@@ -163,7 +163,7 @@ function ServiceTable() {
     setSelectedService(null);
   };
 
-  const filteredServices = services.filter(service => parseInt(service.statusId) !== 2);
+  const filteredServices = services.filter(service => parseInt(service.statusId) == 2);
 
   return (
     <Container fluid>
@@ -208,8 +208,6 @@ function ServiceTable() {
                           <td>{service.status}</td>
                           <td>
                             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                              <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
-                              <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
                               <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
                               <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
                             </div>
@@ -278,4 +276,4 @@ function ServiceTable() {
   );
 }
 
-export default ServiceTable;
+export default ServiceHistory;

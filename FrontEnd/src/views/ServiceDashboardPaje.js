@@ -5,6 +5,7 @@ import { useLocation, useHistory } from 'react-router-dom'; // Para React Router
 
 import TableList from './ServiceTable';
 import AddServiceForm from './AddServiceForm';
+import ServiceHistory from './ServiceHistory';
 
 function ServiceDashboardPage() {
     const history = useHistory();
@@ -36,11 +37,7 @@ function ServiceDashboardPage() {
             case 'newTicket':
                 return <AddServiceForm />;
             case 'history':
-                return (
-                    <Container fluid>
-                        <p>Service History Content (Coming Soon)</p>
-                    </Container>
-                );
+                return <ServiceHistory />;
             default:
                 return <TableList />;
         }
