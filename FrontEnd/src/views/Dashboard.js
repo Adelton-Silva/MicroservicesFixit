@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import ChartistGraph from "react-chartist";
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   Form,
   OverlayTrigger,
   Tooltip,
+  Spinner
 } from "react-bootstrap";
 import axios from "axios";
 import { get } from "jquery";
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const now = new Date();
   const [startedPerMonth, setStartedPerMonth] = useState({});
   const [finishedPerMonth, setFinishedPerMonth] = useState({});
+  const [priorityThisMonth, setPriorityThisMonth] = useState({});
 
   const monthNames = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -36,7 +38,7 @@ const Dashboard = () => {
   const getLastMonths = (n) => {
     const now = new Date();
     return Array.from({ length: n }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth() - (n - 1 - i), 1));
       return monthNames[d.getMonth()];
       });
   };
@@ -50,7 +52,7 @@ const Dashboard = () => {
     "Deploy new version",
   ];
 
-
+  // Fetch serives for each priority
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
     
@@ -75,13 +77,16 @@ const Dashboard = () => {
             : 0;
         } catch (err) {
           newCounts[priority] = 0;
+          setLoading(false);
         }
       }
       setCounts(newCounts);
+      setLoading(false);
     };
     fetchCounts();
   }, []);
 
+  // Fetch open and closed Services for each month
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");  
 
@@ -97,7 +102,7 @@ const Dashboard = () => {
       const now = new Date();
 
       for (let i = 5; i >= 0; i--) {
-        const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const start = new Date(Date.UTC(now.getFullYear(), now.getMonth() - i, 1));
 
         // Format as YYYY-MM-DDT00:00:00
         const format = (date) => date.toISOString().split(".")[0];
@@ -114,6 +119,7 @@ const Dashboard = () => {
             : 0;
         } catch (error) {
           startedCounts[start.getMonth() + 1] = 0;
+          setLoading(false);
         }
 
         // Fetch finished in this month
@@ -127,11 +133,63 @@ const Dashboard = () => {
             : 0;
         } catch (error) {
           finishedCounts[start.getMonth() + 1] = 0;
+          setLoading(false);
         }
       }
       setStartedPerMonth(startedCounts);
       setFinishedPerMonth(finishedCounts);
+      setLoading(false);
     };
+  fetchServices();
+  }, []);
+
+  // Fetch the status of services of this month
+useEffect(() => {
+  const userToken = localStorage.getItem("userToken");  
+
+  if (!userToken) {
+    setLoading(false);
+    return;
+  }
+
+  const fetchServices = async () => {
+    const now = new Date();
+    const format = (date) => date.toISOString().split(".")[0];
+    const start = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
+    const end = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0));
+    const startDate = format(start);
+    const endDate = format(end);
+    
+    try { 
+      const response = await axios.get(
+        `/service?startDate=${startDate}&endDate=${endDate}`,
+        { headers: { Authorization: `Bearer ${userToken}` } }
+      );
+      const data = Array.isArray(response.data) ? response.data : [];
+      const total = data.length;
+
+      // Count priorities
+      const counts = { Low: 0, Medium: 0, High: 0, Urgent: 0 };
+      data.forEach(service => {
+        if (counts[service.priority] !== undefined) {
+          counts[service.priority]++;
+        }
+      });
+
+      // Calculate percentages
+      const percentages = {};
+      Object.keys(counts).forEach(priority => {
+        percentages[priority] = total > 0 ? (counts[priority] / total) * 100 : 0;
+      });
+      
+      setPriorityThisMonth(percentages);
+      setLoading(false);
+    } catch (error) {
+      setPriorityThisMonth({ Low: 0, Medium: 0, High: 0, Urgent: 0 });
+      setLoading(false);
+    }
+  };
+
   fetchServices();
   }, []);
 
@@ -171,6 +229,17 @@ const Dashboard = () => {
   const startedSeries = monthse.map(month => startedPerMonth[month] || 0);
   const finishedSeries = monthse.map(month => finishedPerMonth[month] || 0);
 
+  const pieData = [
+    { label: `${(priorityThisMonth.Low || 0).toFixed(1)}%`, value: Number(priorityThisMonth.Low), name: "Low" },
+    { label: `${(priorityThisMonth.Medium || 0).toFixed(1)}%`, value: Number(priorityThisMonth.Medium), name: "Medium" },
+    { label: `${(priorityThisMonth.High || 0).toFixed(1)}%`, value: Number(priorityThisMonth.High), name: "High" },
+    { label: `${(priorityThisMonth.Urgent || 0).toFixed(1)}%`, value: Number(priorityThisMonth.Urgent), name: "Urgent" }
+  ].filter(item => item.value > 0);
+
+  const pieLabels = pieData.map(item => item.label);
+  const pieSeries = pieData.map(item => item.value);
+  const pieNames = pieData.map(item => item.name);
+
   const redirectToServicePriority = (priority) => {
     window.location.href = `/admin/service?priority=${priority}`;
   }
@@ -186,7 +255,11 @@ const Dashboard = () => {
                   <Col xs="6">
                     <div className="numbers text-center">
                       <p className="card-category" style={{color: card.color}}>{card.category}</p>
-                      <Card.Title as="h4">{card.data}</Card.Title>
+                      {loading ? (
+                        <Spinner animation="border" size="sm" className="spinning-wheel" />
+                      ) : (
+                        <Card.Title as="h4">{card.data}</Card.Title>
+                      )}
                     </div>
                   </Col>
                 </Row>
@@ -211,6 +284,11 @@ const Dashboard = () => {
               <p className="card-category">6 Months performance</p>
             </Card.Header>
             <Card.Body>
+              {loading ? (
+                <div className="d-flex justify-content-center align-items-center" style={{height: 245}}>
+                  <Spinner animation="border" className="spinning-wheel"/>
+                </div>
+              ) : (
               <ChartistGraph
                 data={{
                   labels: labels,
@@ -237,6 +315,7 @@ const Dashboard = () => {
                 }}
                 
               />
+              )}
               <div style={{ display: "flex", gap: "1em", marginTop: "10px" }}>
                 <span>
                   <span style={{
@@ -267,14 +346,29 @@ const Dashboard = () => {
         <Col md="4">
           <Card>
             <Card.Header>
-              <Card.Title as="h4">Email Statistics</Card.Title>
-              <p className="card-category">Last Campaign Performance</p>
+              <Card.Title as="h4">Service Priority</Card.Title>
+              <p className="card-category">This month performance</p>
             </Card.Header>
             <Card.Body>
+              {loading ? (
+                <div className="d-flex justify-content-center align-items-center" style={{height: 245}}>
+                  <Spinner animation="border" className="spinning-wheel"/>
+                </div>
+              ) : (
               <ChartistGraph
-                data={{ labels: ["40%", "20%", "40%"], series: [40, 20, 40] }}
+                data={{
+                labels: pieLabels,
+                series: pieSeries
+              }}
                 type="Pie"
               />
+              )}
+              <div style={{ marginTop: "10px" }}>
+                <span style={{ color: "#28CAF5" }}>●</span> Low&nbsp;&nbsp;
+                <span style={{ color: "#FFD700" }}>●</span> Medium&nbsp;&nbsp;
+                <span style={{ color: "#FFA500" }}>●</span> High&nbsp;&nbsp;
+                <span style={{ color: "#FF0000" }}>●</span> Urgent
+              </div>
             </Card.Body>
           </Card>
         </Col>

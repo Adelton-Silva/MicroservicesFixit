@@ -819,3 +819,9 @@
   color: red;
   font-weight: bold; /* Opcional: para que o texto fique em negrito */
 }
+
+.spinning-wheel{
+  color: #EE964B;
+  border: black 1px solid;
+  border-radius: 2px;
+}
