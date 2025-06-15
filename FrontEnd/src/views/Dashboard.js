@@ -16,7 +16,6 @@ import { get } from "jquery";
 
 const Dashboard = () => { 
 
-  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({
     Low: 0,
@@ -25,6 +24,25 @@ const Dashboard = () => {
     Urgent: 0,
   });
   
+  const now = new Date();
+  const [startedPerMonth, setStartedPerMonth] = useState({});
+  const [finishedPerMonth, setFinishedPerMonth] = useState({});
+
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const getLastMonths = (n) => {
+    const now = new Date();
+    return Array.from({ length: n }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+      return monthNames[d.getMonth()];
+      });
+  };
+
+  const labels = getLastMonths(6);
+
   const tasks = [
     "Update dependencies",
     "Refactor dashboard layout",
@@ -64,6 +82,59 @@ const Dashboard = () => {
     fetchCounts();
   }, []);
 
+  useEffect(() => {
+    const userToken = localStorage.getItem("userToken");  
+
+    if (!userToken) {
+      console.error("JWT token not found in localStorage!");
+      setLoading(false);
+      return;
+    }
+
+    const fetchServices = async () => {
+      const startedCounts = {};
+      const finishedCounts = {};
+      const now = new Date();
+
+      for (let i = 5; i >= 0; i--) {
+        const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
+
+        // Format as YYYY-MM-DDT00:00:00
+        const format = (date) => date.toISOString().split(".")[0];
+        const startDate = format(start);
+
+        // Fetch started in this month
+        try { 
+          const response = await axios.get(
+            `/service?startDate=${startDate}`,
+            { headers: { Authorization: `Bearer ${userToken}` } }
+          );
+          startedCounts[start.getMonth() + 1] = Array.isArray(response.data)
+            ? response.data.length
+            : 0;
+        } catch (error) {
+          startedCounts[start.getMonth() + 1] = 0;
+        }
+
+        // Fetch finished in this month
+        try { 
+          const response = await axios.get(
+            `/service?endDate=${startDate}`,
+            { headers: { Authorization: `Bearer ${userToken}` } }
+          );
+          finishedCounts[start.getMonth() + 1] = Array.isArray(response.data)
+            ? response.data.length
+            : 0;
+        } catch (error) {
+          finishedCounts[start.getMonth() + 1] = 0;
+        }
+      }
+      setStartedPerMonth(startedCounts);
+      setFinishedPerMonth(finishedCounts);
+    };
+  fetchServices();
+  }, []);
+
   const statsCards = [
     {
       category: "Priority Low",
@@ -91,6 +162,15 @@ const Dashboard = () => {
     },
   ];
 
+  const nowData = new Date();
+  const monthse = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(nowData.getFullYear(), nowData.getMonth() - (5 - i), 1);
+    return d.getMonth() + 1;
+  });
+
+  const startedSeries = monthse.map(month => startedPerMonth[month] || 0);
+  const finishedSeries = monthse.map(month => finishedPerMonth[month] || 0);
+
   const redirectToServicePriority = (priority) => {
     window.location.href = `/admin/service?priority=${priority}`;
   }
@@ -114,7 +194,7 @@ const Dashboard = () => {
               <Card.Footer className="text-center">
                 <hr />
                 {/* TODO: meter este onClick a funcionar */}
-                <div className="stats" onClick="redirectToServicePriority(card.priority)"> 
+                <div className="stats" onClick={() => redirectToServicePriority(card.category.replace("Priority ", ""))}> 
                   {card.footer}
                 </div>
               </Card.Footer>
@@ -127,23 +207,19 @@ const Dashboard = () => {
         <Col md="8">
           <Card>
             <Card.Header>
-              <Card.Title as="h4">Users Behavior</Card.Title>
-              <p className="card-category">24 Hours performance</p>
+              <Card.Title as="h4">Number of open tickets</Card.Title>
+              <p className="card-category">6 Months performance</p>
             </Card.Header>
             <Card.Body>
               <ChartistGraph
                 data={{
-                  labels: ["9AM", "12PM", "3PM", "6PM", "9PM", "12AM"],
-                  series: [
-                    [287, 385, 490, 492, 554, 586],
-                    [67, 152, 143, 240, 287, 335],
-                    [23, 113, 67, 108, 190, 239],
-                  ],
+                  labels: labels,
+                  series: [startedSeries, finishedSeries],
                 }}
                 type="Line"
                 options={{
                   low: 0,
-                  high: 800,
+                  high: Math.max(...startedSeries, ...finishedSeries, 10),
                   showArea: false,
                   height: "245px",
                   axisX: { showGrid: false },
@@ -152,8 +228,39 @@ const Dashboard = () => {
                   showPoint: true,
                   fullWidth: true,
                   chartPadding: { right: 50 },
+                  axisY: {
+                    onlyInteger: true,
+                    labelInterpolationFnc: function(value) {
+                      return Number.isInteger(value) ? value : null;
+                    }
+                  }
                 }}
+                
               />
+              <div style={{ display: "flex", gap: "1em", marginTop: "10px" }}>
+                <span>
+                  <span style={{
+                    display: "inline-block",
+                    width: 16,
+                    height: 4,
+                    background: "#28CAF5", // Chartist default first line color
+                    marginRight: 6,
+                    verticalAlign: "middle"
+                  }}></span>
+                  Started
+                </span>
+                <span>
+                  <span style={{
+                    display: "inline-block",
+                    width: 16,
+                    height: 4,
+                    background: "#D63546", // Chartist default second line color
+                    marginRight: 6,
+                    verticalAlign: "middle"
+                  }}></span>
+                  Finished
+                </span>
+              </div>
             </Card.Body>
           </Card>
         </Col>

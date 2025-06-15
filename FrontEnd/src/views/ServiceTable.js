@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaKey, FaUserCog, FaPen, FaTrash } from "react-icons/fa";
 import '../assets/css/app.css';
+import PropTypes from "prop-types";
 //import EditServiceModal from "./EditServiceModal";
 
 // react-bootstrap components
@@ -15,7 +16,7 @@ import {
   Button,
 } from "react-bootstrap";
 
-function ServiceTable() {
+function ServiceTable({ priorityFilter }) {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,13 @@ function ServiceTable() {
       return;
     }
 
-    const fetchServices = axios.get("/service?pageNumber=1&pageSize=10", {
+    // Build the URL with the priority filter if present
+    let url = "/service?pageNumber=1&pageSize=10";
+    if (priorityFilter) {
+      url += `&priority=${priorityFilter}`;
+    }
+
+    const fetchServices = axios.get(url, {
       headers: { Authorization: `Bearer ${userToken}` },
     });
 
@@ -248,5 +255,9 @@ function ServiceTable() {
     </Container>
   );
 }
+
+ServiceTable.propTypes = {
+  priorityFilter: PropTypes.string,
+};
 
 export default ServiceTable;

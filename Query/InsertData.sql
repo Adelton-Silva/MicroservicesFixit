@@ -38,6 +38,45 @@ INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, 
 (1, 1, NULL, 1, '2025-06-15', NULL, NULL, NULL, NOW(), NOW(), 1, 'High', 'Maintenance', 1, 'Routine Lathe checkup'),
 (2, 2, NULL, 2, '2025-06-10', NULL, 'Urgent failure reported', NULL, NOW(), NOW(), 2, 'Urgent', 'Repair', 2, 'Emergency CNC service');
 
+-- Generated Services over the last 5 months
+
+-- January 2025 (5 months ago) - 2 services
+INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, created_date, modified_date, status_id, priority, category, machine_id, description)
+VALUES
+(3, 1, NULL, 1, '2025-01-10', '2025-01-12', NOW(), NOW(), 3, 'Medium', 'Maintenance', 1, 'Quarterly inspection'),
+(4, 2, NULL, 2, '2025-01-20', '2025-01-23', NOW(), NOW(), 3, 'High', 'Repair', 2, 'Belt replacement');
+
+-- February 2025 - 3 services
+INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, created_date, modified_date, status_id, priority, category, machine_id, description)
+VALUES
+(5, 1, NULL, 1, '2025-02-05', '2025-02-07', NOW(), NOW(), 3, 'Low', 'Checkup', 1, 'Post-holiday check'),
+(6, 2, NULL, 2, '2025-02-12', '2025-03-13', NOW(), NOW(), 3, 'Medium', 'Repair', 2, 'Sensor realignment'),
+(7, 1, NULL, 1, '2025-02-22', '2025-03-24', NOW(), NOW(), 3, 'High', 'Emergency', 1, 'Lathe overheating issue');
+
+-- March 2025 - 4 services
+INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, created_date, modified_date, status_id, priority, category, machine_id, description)
+VALUES
+(8, 2, NULL, 2, '2025-03-01', '2025-03-03', NOW(), NOW(), 3, 'Medium', 'Maintenance', 2, 'Routine CNC maintenance'),
+(9, 1, NULL, 1, '2025-03-08', '2025-03-09', NOW(), NOW(), 3, 'Low', 'Checkup', 1, 'Oil and lubrication'),
+(10, 1, NULL, 1, '2025-03-15', '2025-03-17', NOW(), NOW(), 3, 'High', 'Repair', 1, 'Gearbox issue'),
+(11, 2, NULL, 2, '2025-03-20', '2025-03-22', NOW(), NOW(), 3, 'Medium', 'Maintenance', 2, 'Cooling system cleaning');
+
+-- April 2025 - 2 services
+INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, created_date, modified_date, status_id, priority, category, machine_id, description)
+VALUES
+(12, 1, NULL, 1, '2025-04-05', '2025-04-06', NOW(), NOW(), 3, 'Low', 'Checkup', 1, 'Light tune-up'),
+(13, 2, NULL, 2, '2025-04-15', '2025-04-18', NOW(), NOW(), 3, 'High', 'Repair', 2, 'Motor replacement');
+
+-- May 2025 - 5 services
+INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, created_date, modified_date, status_id, priority, category, machine_id, description)
+VALUES
+(14, 1, NULL, 1, '2025-05-01', '2025-05-03', NOW(), NOW(), 3, 'High', 'Repair', 1, 'Lathe shaft issue'),
+(15, 2, NULL, 2, '2025-05-06', '2025-06-08', NOW(), NOW(), 3, 'Medium', 'Maintenance', 2, 'CNC head inspection'),
+(16, 1, NULL, 1, '2025-05-12', '2025-05-13', NOW(), NOW(), 3, 'Low', 'Checkup', 1, 'Preventive diagnostics'),
+(17, 2, NULL, 2, '2025-05-20', '2025-05-21', NOW(), NOW(), 3, 'Medium', 'Maintenance', 2, 'Software calibration'),
+(18, 1, NULL, 1, '2025-05-25', '2025-05-26', NOW(), NOW(), 3, 'High', 'Emergency', 1, 'Unexpected vibration');
+
+
 
 INSERT INTO public.reviews (id, service_id, client_id, review_text, review_star, created_date, modified_date) VALUES
 (1, 1, 1, 'Very professional and on time.', 5, NOW(), NOW()),
