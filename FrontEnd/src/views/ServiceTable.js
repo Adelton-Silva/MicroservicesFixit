@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaKey, FaUserCog, FaPen, FaTrash } from "react-icons/fa";
 import '../assets/css/app.css';
-//import EditServiceModal from "./EditServiceModal";
+import EditServiceModal from "./EditServiceModal";
 
 // react-bootstrap components
 import {
@@ -18,7 +18,11 @@ import {
 function ServiceTable() {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [machines, setMachines] = useState([]);
+  const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
@@ -26,39 +30,48 @@ function ServiceTable() {
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [deleteMessage, setDeleteMessage] = useState("");
 
-  console.log("selectedService no render:", selectedService);
-  console.log("showEditModal:", showEditModal);
+  // console.log("selectedService in render:", selectedService);
+  // console.log("showEditModal:", showEditModal);
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
 
     if (!userToken) {
-      console.error("JWT token not found in localStorage!");
+      console.error("JWT token not found in localStorage! Please log in.");
       setLoading(false);
       return;
     }
 
-    const fetchServices = axios.get("/service?pageNumber=1&pageSize=10", {
+    const config = {
       headers: { Authorization: `Bearer ${userToken}` },
-    });
+    };
 
-    const fetchUsers = axios.get("/users?pageNumber=1&pageSize=10", {
-      headers: { Authorization: `Bearer ${userToken}` },
-    });
-
-    Promise.all([fetchServices, fetchUsers])
-      .then(([servicesResponse, usersResponse]) => {
+    Promise.all([
+      axios.get("/service?pageNumber=1&pageSize=10", config),
+      axios.get("/users?pageNumber=1&pageSize=10", config),
+      axios.get("/company?pageNumber=1&pageSize=10", config),
+      axios.get("/machine?pageNumber=1&pageSize=10", config),
+      axios.get("/status?pageNumber=1&pageSize=10", config)
+    ])
+      .then(([servicesResponse, usersResponse, clientsResponse, machinesResponse, statusesResponse]) => {
         const servicesData = Array.isArray(servicesResponse.data)
           ? servicesResponse.data
           : servicesResponse.data.data || [];
+
+        // console.log("Raw API services data:", servicesData); // Keep this for debugging if needed later
+        // console.log("Raw API statuses data:", statusesResponse.data); // Keep this for debugging if needed later
+
 
         const mappedServices = servicesData.map(service => ({
           id: service.id,
           priority: service.priority,
           category: service.category,
+          companyId: service.companyId,
           companyName: service.companyName,
+          machineId: service.machine?.id,
           machine: service.machine,
           workerId: service.workerId,
+          statusId: service.status?.id || null,
           status: service.status,
           description: service.description || "",
         }));
@@ -68,12 +81,14 @@ function ServiceTable() {
         const usersData = Array.isArray(usersResponse.data)
           ? usersResponse.data
           : usersResponse.data.data || [];
-
         setUsers(usersData);
+
+        setClients(clientsResponse.data || []);
+        setMachines(machinesResponse.data || []);
+        setStatuses(statusesResponse.data || []);
       })
       .catch((error) => {
         console.error("Error fetching data:", error.response ? error.response.data : error.message);
-        // This general error message is fine here if fetching initial data fails
       })
       .finally(() => {
         setLoading(false);
@@ -94,9 +109,10 @@ function ServiceTable() {
   };
 
   const handleEdit = (service) => {
-    console.log("Edit service:", service);
-    if (!service) {
-      console.error("Invalid service in handleEdit", service);
+    console.log("Attempting to edit service:", service);
+    // console.log("Service object passed to EditServiceModal:", service); // Debug this to see status structure
+    if (!service || !service.id) {
+      console.error("Cannot edit: Invalid service object or missing ID.", service);
       return;
     }
     setSelectedService(service);
@@ -105,7 +121,7 @@ function ServiceTable() {
 
   const handleDelete = (service) => {
     setServiceToDelete(service);
-    setDeleteMessage(""); // Clear any previous messages
+    setDeleteMessage("");
     setShowDeleteConfirmModal(true);
   };
 
@@ -134,15 +150,34 @@ function ServiceTable() {
   const cancelDelete = () => {
     setShowDeleteConfirmModal(false);
     setServiceToDelete(null);
-    setDeleteMessage(""); // Clear message when modal is closed
+    setDeleteMessage("");
   };
 
   const handleSaveEdit = (id, updatedData) => {
     setServices(prev =>
       prev.map(service =>
-        service.id === id ? { ...service, ...updatedData } : service
+        service.id === id
+          ? {
+            ...service,
+            ...updatedData,
+            companyName: clients.find(c => c.id === updatedData.companyId)?.name || service.companyName,
+            machine: machines.find(m => m.id === updatedData.machineId) || service.machine,
+            // *** Crucial fix: Get status description from statuses state ***
+            status: statuses.find(s => s.id === parseInt(updatedData.statusId))?.description || service.status, // Changed to .description and parseInt
+            statusId: parseInt(updatedData.statusId) || null, // Ensure statusId is stored as number
+            workerId: updatedData.workerId,
+            description: updatedData.description
+          }
+          : service
       )
     );
+    setShowEditModal(false);
+    setSelectedService(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedService(null);
   };
 
   return (
@@ -183,7 +218,7 @@ function ServiceTable() {
                           <td>{service.priority}</td>
                           <td>{service.category}</td>
                           <td>{service.companyName}</td>
-                          <td>{service.machine?.type}</td>
+                          <td>{service.machine?.type || 'N/A'}</td>
                           <td>{getUsernameById(service.workerId)}</td>
                           <td>{service.status}</td>
                           <td>
@@ -227,7 +262,7 @@ function ServiceTable() {
             </>
           )}
         </Modal.Body>
-        <Modal.Footer className={deleteMessage ? "justify-content-center" : ""}> {/* CONDITIONAL CLASS HERE */}
+        <Modal.Footer className={deleteMessage ? "justify-content-center" : ""}>
           {deleteMessage ? (
             <Button variant="secondary" onClick={cancelDelete}>
               Close
@@ -244,7 +279,16 @@ function ServiceTable() {
           )}
         </Modal.Footer>
       </Modal>
-     
+
+      {/* Edit Service Modal (using EditServiceModal component) */}
+      {selectedService && (
+        <EditServiceModal
+          show={showEditModal}
+          onHide={handleCloseEditModal}
+          service={selectedService}
+          onSave={handleSaveEdit}
+        />
+      )}
     </Container>
   );
 }

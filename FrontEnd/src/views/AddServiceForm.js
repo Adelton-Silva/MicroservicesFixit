@@ -68,8 +68,8 @@ function AddServiceForm() {
         console.log("Machines (Machine) data received:", machinesResponse.data);
 
         setUsers(usersResponse.data || []);
-        setClients(clientsResponse.data.data || []);
-        setMachines(machinesResponse.data.data || []);
+        setClients(clientsResponse.data || []);
+        setMachines(machinesResponse.data || []);
       })
       .catch((error) => {
         console.error("Error fetching form data:", error.response ? error.response.data : error.message);

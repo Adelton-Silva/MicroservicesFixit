@@ -22,13 +22,16 @@ public class ServiceController : ControllerBase
     private readonly StatusContext _statusContext;
 
     private readonly HttpClient _httpClient;
+    
+     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ServiceController(
         ServiceContext context,
         CompanyContext companyContext,
         PartsContext partsContext,
         StatusContext statusContext,
-        HttpClient httpClient)
+        HttpClient httpClient,
+         IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _companyContext = companyContext;
@@ -36,7 +39,8 @@ public class ServiceController : ControllerBase
         _statusContext = statusContext;
         _httpClient = httpClient;
 
-        _httpClient.BaseAddress = new Uri("http://localhost:5001/"); 
+        _httpClient.BaseAddress = new Uri("http://user_management_service:5001/");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     private async Task<WorkerDto?> GetWorkerDetails(int id)
@@ -45,6 +49,18 @@ public class ServiceController : ControllerBase
         {
             Console.WriteLine($"DEBUG: Attempting to fetch worker details for ID: {id}");
             string requestUrl = $"api/users/{id}";
+
+            var accessToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].FirstOrDefault();
+
+             if (!string.IsNullOrEmpty(accessToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken.Replace("Bearer ", ""));
+            }
+            else
+            {
+                Console.WriteLine("WARNING: Access token not found in the original request for user details.");
+            }
 
             Console.WriteLine($"DEBUG: Full request URL: {_httpClient.BaseAddress}{requestUrl}");
 
