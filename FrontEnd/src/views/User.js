@@ -1,262 +1,228 @@
-// src/views/UserTable.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-// Certifique-se de que 'react-icons' está instalado: npm install react-icons
-import { FaKey, FaUserCog, FaPen, FaTrash } from "react-icons/fa";
-
-// react-bootstrap components
+import { FaKey, FaUserCog, FaPen, FaTrash, FaSort } from "react-icons/fa";
 import {
   Card,
   Table,
   Container,
   Row,
   Col,
-  Modal, // Import Modal
-  Button, // Import Button
+  Modal,
+  Button,
+  Form,
+  InputGroup,
+  Pagination
 } from "react-bootstrap";
-
-// Importar o componente EditUserModal
-// Certifique-se de que 'EditUserModal.js' está na mesma pasta.
 import EditUserModal from './EditUser';
 
 function UserTable() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortField, setSortField] = useState("username");
+  const [sortOrder, setSortOrder] = useState("asc");
 
-  // States for the delete confirmation modal
+  // Modal states
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
-  // States for the notification modal (success/error)
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
-  const [notificationVariant, setNotificationVariant] = useState("success"); // 'success' or 'danger'
-
-  // New states for the user edit modal
+  const [notificationVariant, setNotificationVariant] = useState("success");
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null); // Stores the user selected for editing
+  const [selectedUser, setSelectedUser] = useState(null);
 
-  // Function to fetch users
   const fetchUsers = () => {
     const userToken = localStorage.getItem("userToken");
 
     if (!userToken) {
-      console.error("JWT Token not found in localStorage!");
-      setLoading(false);
-      // Display a notification to the user if the token is missing
       setNotificationTitle("Authentication Error");
       setNotificationMessage("JWT Token not found. Please log in again.");
       setNotificationVariant("danger");
       setShowNotificationModal(true);
+      setLoading(false);
       return;
     }
 
-    axios
-      .get("/users?pageNumber=1&pageSize=10", { // Adjusted for full URL clarity
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        }
-      })
-      .then((response) => {
-        console.log("Backend response (Users):", response.data);
-        // Ensure the response is treated as an array, if necessary
-        const usersData = Array.isArray(response.data) ? response.data : response.data.data || [];
-        setUsers(usersData);
-      })
-      .catch((error) => {
-        console.error("Error fetching Users:", error.response ? error.response.data : error.message);
-        setNotificationTitle("Error Fetching Users");
-        setNotificationMessage("Something went wrong. Please try again.");
-        setNotificationVariant("danger");
-        setShowNotificationModal(true);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    axios.get(`/users?pageNumber=${page}&pageSize=${pageSize}&search=${search}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+      }
+    })
+    .then(response => {
+      setUsers(response.data.items || []);
+      setTotalPages(response.data.totalPages || 1);
+    })
+    .catch(error => {
+      console.error("Error fetching users:", error);
+      setNotificationTitle("Error");
+      setNotificationMessage("Failed to fetch users.");
+      setNotificationVariant("danger");
+      setShowNotificationModal(true);
+    })
+    .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchUsers(); // Calls the fetch function on component mount
-  }, []);
+    fetchUsers();
+  }, [page, search, sortField, sortOrder]);
 
-  // Function to open the delete confirmation modal
-  const handleDelete = (user) => {
-    setUserToDelete(user); // Stores the user to be deleted
-    setShowDeleteConfirmModal(true); // Opens the modal
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1); // Reset to first page
   };
 
-  // Function to confirm deletion
-  const confirmDelete = async () => {
-    if (!userToDelete) return; // Ensures there's a user to delete
-
-    try {
-      const userToken = localStorage.getItem("userToken");
-      if (!userToken) {
-        setNotificationTitle("Authentication Error");
-        setNotificationMessage("User token not found. Please log in again.");
-        setNotificationVariant("danger");
-        setShowNotificationModal(true);
-        return;
-      }
-
-      // Change this URL to the actual user deletion endpoint
-      await axios.delete(`/users/${userToDelete.id}`, {
-        headers: { Authorization: `Bearer ${userToken}` }
-      });
-
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
-      
-      setNotificationTitle("Success!");
-      setNotificationMessage(`User ${userToDelete.username} deleted successfully.`);
-      setNotificationVariant("success");
-      setShowNotificationModal(true);
-
-    } catch (error) {
-      console.error("Error deleting user:", error.response ? error.response.data : error.message);
-      setNotificationTitle("Error Deleting User");
-      setNotificationMessage("Failed to delete user. Please try again.");
-      setNotificationVariant("danger");
-      setShowNotificationModal(true);
-    } finally {
-      // Close the confirmation modal and clear the user for deletion
-      setShowDeleteConfirmModal(false);
-      setUserToDelete(null);
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(prev => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
     }
   };
 
-  // Function to cancel deletion
-  const cancelDelete = () => {
-    setShowDeleteConfirmModal(false);
-    setUserToDelete(null);
-  };
-
-  // Function to close the notification modal
-  const closeNotificationModal = () => {
-    setShowNotificationModal(false);
-    setNotificationTitle("");
-    setNotificationMessage("");
-    setNotificationVariant("success"); // Reset to default
-  };
-
-  // Function to open the user edit modal
   const handleEdit = (user) => {
-    setSelectedUser(user); // Sets the user to be edited
-    setShowEditModal(true); // Opens the edit modal
+    setSelectedUser(user);
+    setShowEditModal(true);
   };
 
-  // Function to close the user edit modal
-  const closeEditModal = () => {
-    setShowEditModal(false);
-    setSelectedUser(null); // Clears the selected user
+  const handleDelete = (user) => {
+    setUserToDelete(user);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    const token = localStorage.getItem("userToken");
+    if (!token) return;
+
+    try {
+      await axios.delete(`/users/${userToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+      setNotificationTitle("Deleted");
+      setNotificationMessage("User deleted successfully.");
+      setNotificationVariant("success");
+    } catch (error) {
+      setNotificationTitle("Error");
+      setNotificationMessage("Failed to delete user.");
+      setNotificationVariant("danger");
+    } finally {
+      setShowDeleteConfirmModal(false);
+      setShowNotificationModal(true);
+    }
   };
 
   return (
     <Container fluid>
-      <Row>
-        <Col md="12">
-          <Card className="strpied-tabled-with-hover">
-            <Card.Header>
-              <Card.Title as="h4">Users</Card.Title>
-              <p className="card-category">
-                Users List
-              </p>
-            </Card.Header>
-            <Card.Body className="table-full-width table-responsive px-0">
-              {loading ? (
-                <p>Loading...</p>
-              ) : (
-                <Table className="table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th className="border-0">ID</th>
-                      <th className="border-0">Username</th>
-                      <th className="border-0">Email</th>
-                      <th className="border-0">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan="4" className="text-center">No users found.</td>
-                      </tr>
-                    ) : (
-                      users.map((user) => (
-                        <tr key={user.id}>
-                          <td>{user.id}</td>
-                          <td>{user.username}</td>
-                          <td>{user.email}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                              <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => {/* handlePermissions(user) */}} />
-                              <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => {/*handleAssign(user)*/}} />
-                              {/* Call handleEdit when clicking the edit icon */}
-                              <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(user)} />
-                              <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(user)} />
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
-              )}
-            </Card.Body>
-          </Card>
+      <Row className="mb-3">
+        <Col md="6">
+          <h4>User Management</h4>
+        </Col>
+        <Col md="6">
+          <InputGroup>
+            <Form.Control
+              placeholder="Search by username or email"
+              value={search}
+              onChange={handleSearchChange}
+            />
+          </InputGroup>
         </Col>
       </Row>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        show={showDeleteConfirmModal}
-        onHide={cancelDelete}
-        backdrop="static"
-        keyboard={false}
-        centered
-      >
+      <Card>
+        <Card.Body>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <>
+              <Table striped hover responsive>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th style={{ cursor: "pointer" }} onClick={() => handleSort("username")}>
+                      Username <FaSort />
+                    </th>
+                    <th style={{ cursor: "pointer" }} onClick={() => handleSort("email")}>
+                      Email <FaSort />
+                    </th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr><td colSpan="4">No users found.</td></tr>
+                  ) : (
+                    users.map(user => (
+                      <tr key={user.id}>
+                        <td>{user.id}</td>
+                        <td>{user.username}</td>
+                        <td>{user.email}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <FaKey title="Permissions" style={{ cursor: 'pointer' }} />
+                            <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} />
+                            <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(user)} />
+                            <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(user)} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+
+              {/* Pagination with numbers */}
+              <Pagination className="justify-content-center">
+                <Pagination.Prev onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1} />
+                {[...Array(totalPages)].map((_, idx) => (
+                  <Pagination.Item
+                    key={idx + 1}
+                    active={page === idx + 1}
+                    onClick={() => setPage(idx + 1)}
+                  >
+                    {idx + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages} />
+              </Pagination>
+            </>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* Modais */}
+      <Modal show={showDeleteConfirmModal} onHide={() => setShowDeleteConfirmModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to delete the user **{userToDelete?.username}**?
-          <br />
-          This action cannot be undone.
+          Are you sure you want to delete user <strong>{userToDelete?.username}</strong>?
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={cancelDelete}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={confirmDelete}>
-            Delete
-          </Button>
+          <Button variant="secondary" onClick={() => setShowDeleteConfirmModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={confirmDelete}>Delete</Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Notification Modal */}
-      <Modal
-        show={showNotificationModal}
-        onHide={closeNotificationModal}
-        centered
-      >
+      <Modal show={showNotificationModal} onHide={() => setShowNotificationModal(false)} centered>
         <Modal.Header closeButton className={`bg-${notificationVariant} text-white`}>
           <Modal.Title>{notificationTitle}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {notificationMessage}
-        </Modal.Body>
-        <Modal.Footer className="justify-content-center">
-          <Button variant="secondary" onClick={closeNotificationModal}>
-            Close
-          </Button>
+        <Modal.Body>{notificationMessage}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={() => setShowNotificationModal(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
 
-      
       <EditUserModal
-        show={showEditModal} 
-        onHide={closeEditModal} 
-        user={selectedUser} 
-        onSave={fetchUsers} 
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        user={selectedUser}
+        onSave={fetchUsers}
       />
     </Container>
   );

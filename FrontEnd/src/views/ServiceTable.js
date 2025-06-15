@@ -28,6 +28,10 @@ function ServiceTable() {
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [deleteMessage, setDeleteMessage] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
+
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
 
@@ -42,16 +46,18 @@ function ServiceTable() {
     };
 
     Promise.all([
-      axios.get("/service?pageNumber=1&pageSize=10", config),
-      axios.get("/users?pageNumber=1&pageSize=10", config),
-      axios.get("/company?pageNumber=1&pageSize=10", config),
-      axios.get("/machine?pageNumber=1&pageSize=10", config),
-      axios.get("/status?pageNumber=1&pageSize=10", config)
+      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&excludeStatusId=2`, config),
+      axios.get("/users?pageNumber=1&pageSize=100", config),
+      axios.get("/company?pageNumber=1&pageSize=100", config),
+      axios.get("/machine?pageNumber=1&pageSize=100", config),
+      axios.get("/status?pageNumber=1&pageSize=100", config)
     ])
       .then(([servicesResponse, usersResponse, clientsResponse, machinesResponse, statusesResponse]) => {
-        const servicesData = Array.isArray(servicesResponse.data)
-          ? servicesResponse.data
-          : servicesResponse.data.data || [];
+        const servicesData = Array.isArray(servicesResponse.data.data)
+          ? servicesResponse.data.data
+          : [];
+
+        setTotalPages(servicesResponse.data.totalPages || 1);
 
         const mappedServices = servicesData.map(service => ({
           id: service.id,
@@ -68,10 +74,10 @@ function ServiceTable() {
         }));
 
         setServices(mappedServices);
-        setUsers(Array.isArray(usersResponse.data) ? usersResponse.data : usersResponse.data.data || []);
-        setClients(clientsResponse.data || []);
-        setMachines(machinesResponse.data || []);
-        setStatuses(statusesResponse.data || []);
+        setUsers(usersResponse.data.items || []);
+        setClients(clientsResponse.data.items || []);
+        setMachines(machinesResponse.data.items || []);
+        setStatuses(statusesResponse.data.items || []);
       })
       .catch((error) => {
         console.error("Error fetching data:", error.response ? error.response.data : error.message);
@@ -79,7 +85,7 @@ function ServiceTable() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [currentPage]);
 
   const getUsernameById = (userId) => {
     const user = users.find(u => u.id === userId);
@@ -95,10 +101,7 @@ function ServiceTable() {
   };
 
   const handleEdit = (service) => {
-    if (!service || !service.id) {
-      console.error("Cannot edit: Invalid service object or missing ID.", service);
-      return;
-    }
+    if (!service || !service.id) return;
     setSelectedService(service);
     setShowEditModal(true);
   };
@@ -123,7 +126,7 @@ function ServiceTable() {
         headers: { Authorization: `Bearer ${userToken}` }
       });
 
-      setServices(prevServices => prevServices.filter(s => s.id !== serviceToDelete.id));
+      setServices(prev => prev.filter(s => s.id !== serviceToDelete.id));
       setDeleteMessage(`Service for company "${serviceToDelete.companyName}" deleted successfully.`);
     } catch (error) {
       console.error("Error deleting service:", error.response ? error.response.data : error.message);
@@ -163,8 +166,6 @@ function ServiceTable() {
     setSelectedService(null);
   };
 
-  const filteredServices = services.filter(service => parseInt(service.statusId) !== 2);
-
   return (
     <Container fluid>
       <Row>
@@ -178,54 +179,75 @@ function ServiceTable() {
               {loading ? (
                 <p>Loading...</p>
               ) : (
-                <Table className="table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Priority</th>
-                      <th>Category</th>
-                      <th>Client</th>
-                      <th>Machine</th>
-                      <th>Technician</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredServices.length === 0 ? (
+                <>
+                  <Table className="table-hover table-striped">
+                    <thead>
                       <tr>
-                        <td colSpan="8" className="text-center">No services found.</td>
+                        <th>ID</th>
+                        <th>Priority</th>
+                        <th>Category</th>
+                        <th>Client</th>
+                        <th>Machine</th>
+                        <th>Technician</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                       </tr>
-                    ) : (
-                      filteredServices.map((service) => (
-                        <tr key={service.id}>
-                          <td>{service.id}</td>
-                          <td>{service.priority}</td>
-                          <td>{service.category}</td>
-                          <td>{service.companyName}</td>
-                          <td>{service.machine?.type || 'N/A'}</td>
-                          <td>{getUsernameById(service.workerId)}</td>
-                          <td>{service.status}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                              <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
-                              <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
-                              <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
-                              <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
-                            </div>
-                          </td>
+                    </thead>
+                    <tbody>
+                      {services.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center">No services found.</td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
+                      ) : (
+                        services.map((service) => (
+                          <tr key={service.id}>
+                            <td>{service.id}</td>
+                            <td>{service.priority}</td>
+                            <td>{service.category}</td>
+                            <td>{service.companyName}</td>
+                            <td>{service.machine?.type || 'N/A'}</td>
+                            <td>{getUsernameById(service.workerId)}</td>
+                            <td>{service.status}</td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                                <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
+                                <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
+                                <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
+                                <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </Table>
+
+                  <div className="d-flex justify-content-between align-items-center px-3 pb-3">
+                    <Button
+                      variant="outline-primary"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span>
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline-primary"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </>
               )}
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Delete Confirmation Modal */}
       <Modal
         show={showDeleteConfirmModal}
         onHide={cancelDelete}
@@ -265,7 +287,6 @@ function ServiceTable() {
         </Modal.Footer>
       </Modal>
 
-      {/* Edit Service Modal */}
       {selectedService && (
         <EditServiceModal
           show={showEditModal}

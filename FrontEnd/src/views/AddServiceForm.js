@@ -67,7 +67,7 @@ function AddServiceForm() {
         console.log("Clients (Company) data received:", clientsResponse.data);
         console.log("Machines (Machine) data received:", machinesResponse.data);
 
-        setUsers(usersResponse.data || []);
+        setUsers(usersResponse.data.items || []);
         setClients(clientsResponse.data || []);
         setMachines(machinesResponse.data || []);
       })

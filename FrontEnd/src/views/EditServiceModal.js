@@ -60,7 +60,7 @@ function EditServiceModal({ show, onHide, service, onSave }) {
       axios.get("/status?pageNumber=1&pageSize=10", config)
     ])
       .then(([usersResponse, clientsResponse, machinesResponse, statusesResponse]) => {
-        setUsers(usersResponse.data || []);
+        setUsers(usersResponse.data.items || []);
         setClients(clientsResponse.data || []);
         setMachines(machinesResponse.data || []);
         setStatuses(statusesResponse.data || []);
