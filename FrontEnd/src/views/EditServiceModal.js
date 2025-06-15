@@ -87,7 +87,6 @@ function EditServiceModal({ show, onHide, service, onSave }) {
         category: service.category || "",
         machine: service.machineId || "",
         workerId: service.workerId ? String(service.workerId) : "",
-        // CORREÇÃO AQUI: Garante que statusId é sempre uma string ou ""
         statusId: service.statusId !== null && service.statusId !== undefined ? String(service.statusId) : "",
         observation: service.description || "",
       });
@@ -150,28 +149,34 @@ function EditServiceModal({ show, onHide, service, onSave }) {
       );
 
       console.log("Service updated successfully:", response.data);
+
+      // --- MUDANÇA AQUI: Exibir o modal de sucesso e atrasar o fechamento do modal principal ---
       setFeedbackModalTitle("Success");
       setFeedbackModalMessage("Service updated successfully!");
       setFeedbackModalVariant("success");
-      setShowFeedbackModal(true);
+      setShowFeedbackModal(true); // Mostrar a modal de feedback
 
-      const updatedStatusDescription = statuses.find(s => s.id === parseInt(formData.statusId))?.description || service.status;
-
-      onSave(service.id, {
-        ...service,
-        ...updatedServicePayload,
-        // Ao salvar, também precisamos atualizar clientName e machine para refletir as mudanças
-        companyName: clients.find(c => c.id === parseInt(formData.clientId))?.name || service.companyName,
-        machine: machines.find(m => m.id === parseInt(formData.machine)) || service.machine,
-        status: updatedStatusDescription // Passar a descrição correta
-      });
+      // Opcional: Você pode querer fechar a modal principal de edição APENAS após o feedback
+      // Se onHide fecha a modal de edição principal, vamos atrasar a chamada
+      setTimeout(() => {
+        const updatedStatusDescription = statuses.find(s => s.id === parseInt(formData.statusId))?.description || service.status;
+        onSave(service.id, {
+          ...service,
+          ...updatedServicePayload,
+          companyName: clients.find(c => c.id === parseInt(formData.clientId))?.name || service.companyName,
+          machine: machines.find(m => m.id === parseInt(formData.machine)) || service.machine,
+          status: updatedStatusDescription
+        });
+        onHide(); // Fecha a modal de edição APÓS o feedback ser mostrado por um tempo
+      }, 1500); // Exibe o feedback por 1.5 segundos antes de fechar a modal de edição
+      // ---------------------------------------------------------------------------------------
 
     } catch (error) {
       console.error("Error updating service:", error.response ? error.response.data : error.message);
       setFeedbackModalTitle("Error");
       setFeedbackModalMessage("Failed to update service. Please try again.");
       setFeedbackModalVariant("danger");
-      setShowFeedbackModal(true);
+      setShowFeedbackModal(true); // Mostrar a modal de feedback de erro
     }
   };
 

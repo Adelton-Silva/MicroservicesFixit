@@ -16,38 +16,24 @@
 
 */
 /*eslint-disable*/
-import React, { Component } from "react";
+import React from "react";
+import { Dropdown, Badge } from "react-bootstrap"; // Removido 'Form' e 'Button' pois não serão mais usados
 
-import { Dropdown, Badge, Button, Form } from "react-bootstrap";
-
-import sideBarImage1 from "assets/img/sidebar-1.jpg";
-import sideBarImage2 from "assets/img/sidebar-2.jpg";
-import sideBarImage3 from "assets/img/sidebar-3.jpg";
-import sideBarImage4 from "assets/img/sidebar-4.jpg";
+// REMOVIDAS TODAS AS IMPORTAÇÕES DE IMAGENS
+// import sideBarImage1 from "assets/img/sidebar-1.jpg";
+// import sideBarImage2 from "assets/img/sidebar-2.jpg";
+// import sideBarImage3 from "assets/img/sidebar-3.jpg";
+// import sideBarImage4 from "assets/img/sidebar-4.jpg";
 
 function FixedPlugin({
-  hasImage,
-  setHasImage,
+  // REMOVIDAS AS PROPS RELACIONADAS À IMAGEM
+  // hasImage,
+  // setHasImage,
   color,
-  setColor,
-  image,
-  setImage
+  setColor
+  // image,
+  // setImage
 }) {
-  // constructor(props) {
-  //   super(props);
-  //   this.state = {
-  //     classes: "dropdown show-dropdown open",
-  //     bg_checked: true,
-  //     bgImage: this.props.bgImage,
-  //   };
-  // }
-  // handleClick = () => {
-  //   this.props.handleFixedClick();
-  // };
-  // onChangeClick = () => {
-  //   this.props.handleHasImage(!this.state.bg_checked);
-  //   this.setState({ bg_checked: !this.state.bg_checked });
-  // };
   return (
     <div className="fixed-plugin">
       <Dropdown>
@@ -59,6 +45,8 @@ function FixedPlugin({
           <i className="fas fa-cogs fa-2x mt-1"></i>
         </Dropdown.Toggle>
         <Dropdown.Menu>
+          {/* REMOVIDO COMPLETAMENTE: O switcher de Background Image */}
+          {/*
           <li className="adjustments-line d-flex align-items-center justify-content-between">
             <p>Background Image</p>
             <Form.Check
@@ -68,6 +56,9 @@ function FixedPlugin({
               onChange={setHasImage}
             />
           </li>
+          */}
+
+          {/* Mantenha APENAS os filtros de cor (badges) */}
           <li className="adjustments-line mt-3">
             <p>Filters</p>
             <div className="pull-right">
@@ -91,6 +82,11 @@ function FixedPlugin({
                 className={color === "orange" ? "active" : ""}
                 onClick={() => setColor("orange")}
               ></Badge>
+               <Badge
+                variant="#EE964B"
+                className={color === "#EE964B" ? "active" : ""}
+                onClick={() => setColor("black")}
+              ></Badge>
               <Badge
                 variant="red"
                 className={color === "red" ? "active" : ""}
@@ -104,6 +100,9 @@ function FixedPlugin({
             </div>
             <div className="clearfix"></div>
           </li>
+
+          {/* REMOVIDO COMPLETAMENTE: As opções de imagem do Sidebar */}
+          {/*
           <li className="header-title">Sidebar Images</li>
           <li className={image === sideBarImage1 ? "active" : ""}>
             <a
@@ -153,70 +152,9 @@ function FixedPlugin({
               <img alt="..." src={sideBarImage4}></img>
             </a>
           </li>
-          <li className="button-container">
-            <div>
-              <Button
-                block
-                className="btn-fill"
-                href="http://www.creative-tim.com/product/light-bootstrap-dashboard-react"
-                rel="noopener noreferrer"
-                target="_blank"
-                variant="info"
-              >
-                Download, it's free!
-              </Button>
-            </div>
-          </li>
-          <li className="button-container">
-            <div>
-              <Button
-                block
-                className="btn-fill"
-                href="http://www.creative-tim.com/product/light-bootstrap-dashboard-react"
-                rel="noopener noreferrer"
-                target="_blank"
-                variant="default"
-              >
-                Checkout docs.
-              </Button>
-            </div>
-          </li>
-          <li className="header-title pro-title text-center">
-            Want more components?
-          </li>
-          <li className="button-container">
-            <div>
-              <Button
-                block
-                className="btn-fill"
-                href="http://www.creative-tim.com/product/light-bootstrap-dashboard-pro-react"
-                rel="noopener noreferrer"
-                target="_blank"
-                variant="primary"
-              >
-                Get The PRO Version!
-              </Button>
-            </div>
-          </li>
-          <li className="header-title" id="sharrreTitle">
-            Thank you for sharing!
-          </li>
-          <li className="button-container mb-4">
-            <Button
-              className="btn-social btn-outline btn-round sharrre"
-              id="twitter"
-              variant="twitter"
-            >
-              <i className="fab fa-twitter"></i>· 256
-            </Button>
-            <Button
-              className="btn-social btn-outline btn-round sharrre"
-              id="facebook"
-              variant="facebook"
-            >
-              <i className="fab fa-facebook-square"></i>· 426
-            </Button>
-          </li>
+          */}
+
+          {/* REMOVIDO: Botões de Download, Docs, PRO Version, e Social Share */}
         </Dropdown.Menu>
       </Dropdown>
     </div>
