@@ -165,7 +165,7 @@ CREATE TABLE public.services (
 -- public.services foreign keys
 
 ALTER TABLE public.services ADD CONSTRAINT foregi_key FOREIGN KEY (status_id) REFERENCES public.status(id) ON DELETE CASCADE;
-ALTER TABLE public.services ADD CONSTRAINT services_appointment_id_fkey FOREIGN KEY (company_id) REFERENCES public.company(id) ON DELETE CASCADE;
+ALTER TABLE public.services ADD CONSTRAINT services_appointment_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
 ALTER TABLE public.services ADD CONSTRAINT services_parts_id_fkey FOREIGN KEY (parts_id) REFERENCES public.parts(id) ON DELETE SET NULL;
 
 
