@@ -317,7 +317,7 @@ useEffect(() => {
                 <hr />
                 {/* TODO: meter este onClick a funcionar */}
                 <div className="stats" onClick={() => redirectToServicePriority(card.category.replace("Priority ", ""))}> 
-                  <i className="nc-icon nc-tap-01" style="margin-right: 5px"></i>{card.footer}
+                  <i className="nc-icon nc-tap-01" style={{ marginRight: "5px" }}></i>{card.footer}
                 </div>
               </Card.Footer>
             </Card>
