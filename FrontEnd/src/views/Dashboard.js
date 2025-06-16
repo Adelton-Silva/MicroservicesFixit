@@ -29,6 +29,8 @@ const Dashboard = () => {
   const [startedPerMonth, setStartedPerMonth] = useState({});
   const [finishedPerMonth, setFinishedPerMonth] = useState({});
   const [priorityThisMonth, setPriorityThisMonth] = useState({});
+  const [serviceByWorker, setServiceByWorker] = useState({});
+  const [workers, setWorkers] = useState([]);
 
   const monthNames = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -144,15 +146,15 @@ const Dashboard = () => {
   }, []);
 
   // Fetch the status of services of this month
-useEffect(() => {
-  const userToken = localStorage.getItem("userToken");  
+  useEffect(() => {
+    const userToken = localStorage.getItem("userToken");  
 
-  if (!userToken) {
-    setLoading(false);
-    return;
-  }
+    if (!userToken) {
+      setLoading(false);
+      return;
+    }
 
-  const fetchServices = async () => {
+    const fetchServices = async () => {
     const now = new Date();
     const format = (date) => date.toISOString().split(".")[0];
     const start = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
@@ -192,6 +194,53 @@ useEffect(() => {
 
   fetchServices();
   }, []);
+
+  // Fetch the services by worker of this month
+useEffect(() => {
+  const userToken = localStorage.getItem("userToken");  
+
+  if (!userToken) {
+    setLoading(false);
+    return;
+  }
+
+  const fetchServices = async () => {
+    const ticketByWorker = {};
+    const format = (date) => date.toISOString().split(".")[0];
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
+    const end = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0));
+    const startDate = format(start);
+    const endDate = format(end);
+
+    try { 
+      const userResponse = await axios.get('/users', {
+        headers: { Authorization: `Bearer ${userToken}` }
+      });
+      const userData = Array.isArray(userResponse.data) ? userResponse.data : [];
+
+      await Promise.all(
+        userData.map(async (user) => {
+          const serviceResponse = await axios.get(
+            `/service?startDate=${startDate}&endDate=${endDate}&worker_id=${user.id}`,
+            { headers: { Authorization: `Bearer ${userToken}` } }
+          );
+          const data = Array.isArray(serviceResponse.data) ? serviceResponse.data : [];
+          ticketByWorker[user.id] = data.length; // Store the count
+        })
+      );
+
+      setServiceByWorker(ticketByWorker);
+      setWorkers(userData);
+      setLoading(false);
+    } catch (error) {
+      setServiceByWorker({});
+      setLoading(false);
+    }
+  };
+
+  fetchServices();
+}, []);
 
   const statsCards = [
     {
@@ -268,7 +317,7 @@ useEffect(() => {
                 <hr />
                 {/* TODO: meter este onClick a funcionar */}
                 <div className="stats" onClick={() => redirectToServicePriority(card.category.replace("Priority ", ""))}> 
-                  {card.footer}
+                  <i className="nc-icon nc-tap-01" style="margin-right: 5px"></i>{card.footer}
                 </div>
               </Card.Footer>
             </Card>
@@ -378,23 +427,28 @@ useEffect(() => {
         <Col md="6">
           <Card>
             <Card.Header>
-              <Card.Title as="h4">Monthly Sales</Card.Title>
-              <p className="card-category">All products</p>
+              <Card.Title as="h4">Ticket by Worker</Card.Title>
+              <p className="card-category">This month</p>
             </Card.Header>
             <Card.Body>
               <ChartistGraph
                 data={{
-                  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                  series: [
-                    [542, 443, 320, 780, 553, 453],
-                    [412, 243, 280, 580, 453, 353],
-                  ],
+                  labels: workers.map(worker => worker.name || worker.username || worker.id),
+                  series: [workers.map(worker => serviceByWorker[worker.id] || 0)]
                 }}
                 type="Bar"
                 options={{
+                  low: 0,
+                  high: Math.max(...workers.map(worker => serviceByWorker[worker.id] || 0), 5),
                   seriesBarDistance: 10,
                   axisX: { showGrid: false },
                   height: "245px",
+                  axisY: {
+                  onlyInteger: true,
+                  labelInterpolationFnc: function(value) {
+                    return Number.isInteger(value) ? value : null;
+                  }
+                }
                 }}
               />
             </Card.Body>

@@ -142,7 +142,7 @@ public class ServiceController : ControllerBase
         }
         if (worker_id.HasValue)
         {
-            query = query.Where(a => a.WorkerId == worker_id.Value);
+            query = query.Where(a => a.WorkerId.HasValue && a.WorkerId.Value == worker_id.Value);
         }
 
         var totalItems = await query.CountAsync();
