@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Serialization; // Adicionado para JsonIgnoreCondition
+using System.Text.Json.Serialization;
 
 namespace ServiceManagementService.Controllers;
 
@@ -18,65 +18,63 @@ public class ServiceController : ControllerBase
     private readonly ServiceContext _context;
     private readonly CompanyContext _companyContext;
     private readonly PartsContext _partsContext;
-
     private readonly StatusContext _statusContext;
-
     private readonly HttpClient _httpClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ServiceController(
         ServiceContext context,
         CompanyContext companyContext,
         PartsContext partsContext,
         StatusContext statusContext,
-        HttpClient httpClient)
+        HttpClient httpClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _companyContext = companyContext;
         _partsContext = partsContext;
         _statusContext = statusContext;
         _httpClient = httpClient;
-
-        _httpClient.BaseAddress = new Uri("http://localhost:5001/"); 
+        _httpClient.BaseAddress = new Uri("http://user_management_service:5001/");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     private async Task<WorkerDto?> GetWorkerDetails(int id)
     {
         try
         {
-            Console.WriteLine($"DEBUG: Attempting to fetch worker details for ID: {id}");
             string requestUrl = $"api/users/{id}";
 
-            Console.WriteLine($"DEBUG: Full request URL: {_httpClient.BaseAddress}{requestUrl}");
+            var accessToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].FirstOrDefault();
 
-            var response = await _httpClient.GetAsync(requestUrl);
-
-            Console.WriteLine($"DEBUG: HTTP Response Status: {response.StatusCode}");
-            if (!response.IsSuccessStatusCode)
+            if (!string.IsNullOrEmpty(accessToken))
             {
-                Console.WriteLine($"DEBUG: HTTP Response Content: {await response.Content.ReadAsStringAsync()}");
-                return null;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken.Replace("Bearer ", ""));
             }
 
-            var json = await response.Content.ReadAsStringAsync(); 
+            var response = await _httpClient.GetAsync(requestUrl);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var json = await response.Content.ReadAsStringAsync();
             var worker = JsonSerializer.Deserialize<WorkerDto>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return worker;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            Console.WriteLine($"Error getting user with id {id}: {ex.Message}"); 
             return null;
         }
     }
 
-    // GET: api/services/
+    // GET: api/service
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ServiceDto>>> GetService(
+    public async Task<ActionResult> GetService(
         [FromQuery] string? priority,
-        [FromQuery] DateTime? startDate,
-        [FromQuery] DateTime? endDate,
         [FromQuery] int? company_id,
-        [FromQuery] int? status,
         [FromQuery] int? worker_id,
+        [FromQuery] int? status_id,
+        [FromQuery] int? excludeStatusId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10
     )
@@ -93,56 +91,26 @@ public class ServiceController : ControllerBase
             .Include(s => s.Machine)
             .AsQueryable();
 
-
-        if (startDate.HasValue && startDate.Value.Kind != DateTimeKind.Utc)
-            startDate = DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc);
-
-        if (endDate.HasValue && endDate.Value.Kind != DateTimeKind.Utc)
-            endDate = DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc);
-
-
-        if (startDate.HasValue && endDate.HasValue)
-        {
-            var startMonth = startDate.Value.Month;
-            var startYear = startDate.Value.Year;
-            var endMonth = endDate.Value.Month;
-            var endYear = endDate.Value.Year;
-            query = query.Where(a =>
-                (a.DateStarted.HasValue && a.DateStarted.Value.Month == startMonth && a.DateStarted.Value.Year == startYear) ||
-                (a.DateFinished.HasValue && a.DateFinished.Value.Month == endMonth && a.DateFinished.Value.Year == endYear)
-            );
-        }
-        else if (startDate.HasValue)
-        {
-            var month = startDate.Value.Month;
-            var year = startDate.Value.Year;
-            query = query.Where(a => a.DateStarted.HasValue &&
-                                    a.DateStarted.Value.Month == month &&
-                                    a.DateStarted.Value.Year == year);
-        }
-        else if (endDate.HasValue)
-        {
-            var month = endDate.Value.Month;
-            var year = endDate.Value.Year;
-            query = query.Where(a => a.DateFinished.HasValue &&
-                                    a.DateFinished.Value.Month == month &&
-                                    a.DateFinished.Value.Year == year);
-        }
-        if (status.HasValue)
-        {
-            query = query.Where(a => a.StatusId == status.Value);
-        }
         if (!string.IsNullOrEmpty(priority))
         {
-            query = query.Where(a => a.Priority == priority);
+            query = query.Where(s => s.Priority == priority);
         }
+
         if (company_id.HasValue)
         {
             query = query.Where(a => a.CompanyId == company_id.Value);
         }
         if (worker_id.HasValue)
         {
-            query = query.Where(a => a.WorkerId.HasValue && a.WorkerId.Value == worker_id.Value);
+            query = query.Where(a => a.WorkerId == worker_id.Value);
+        }
+        if (status_id.HasValue)
+        {
+            query = query.Where(a => a.StatusId == status_id.Value);
+        }
+        if (excludeStatusId.HasValue)
+        {
+            query = query.Where(a => a.StatusId != excludeStatusId.Value);
         }
 
         var totalItems = await query.CountAsync();
@@ -157,11 +125,9 @@ public class ServiceController : ControllerBase
         foreach (var service in services)
         {
             WorkerDto? workerDetails = null;
-            // A chamada para GetWorkerDetails para enriquecer o DTO ainda ocorre aqui para GET
-            // Se o UserManagementService não estiver disponível, TechnicianName será nulo.
             if (service.WorkerId.HasValue)
             {
-                workerDetails = await GetWorkerDetails(service.WorkerId.Value); 
+                workerDetails = await GetWorkerDetails(service.WorkerId.Value);
             }
 
             serviceDtos.Add(new ServiceDto
@@ -190,10 +156,17 @@ public class ServiceController : ControllerBase
             });
         }
 
-        return Ok(serviceDtos);
+        return Ok(new
+        {
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            Data = serviceDtos
+        });
     }
 
-    // GET: api/services/5
+    // GET: api/service/5
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceDto>> GetServive(int id)
     {
@@ -240,57 +213,22 @@ public class ServiceController : ControllerBase
         });
     }
 
-    // POST: api/services
+    // POST: api/service
     [HttpPost]
     public async Task<ActionResult<Service>> PostService(Service service)
     {
-        Console.WriteLine($"DEBUG: PostService received. ModelState.IsValid: {ModelState.IsValid}");
-        Console.WriteLine($"DEBUG: Received Service CompanyId (raw): {service.CompanyId}");
-        Console.WriteLine($"DEBUG: Received Service WorkerId (raw): {service.WorkerId}");
-        Console.WriteLine($"DEBUG: Received Service PartsId (raw): {service.PartsId}");
-        Console.WriteLine($"DEBUG: Received Service Category: '{service.Category ?? "NULL"}'");
-
         if (!ModelState.IsValid)
-        {
-            Console.WriteLine("DEBUG: ModelState is invalid. Errors:");
-            foreach (var modelStateEntry in ModelState.Values)
-            {
-                foreach (var error in modelStateEntry.Errors)
-                {
-                    Console.WriteLine($"- {error.ErrorMessage}");
-                }
-            }
             return BadRequest(ModelState);
-        }
 
-        // --- Validação da empresa ---
-        if (!service.CompanyId.HasValue) 
-        {
-            Console.WriteLine("DEBUG: CompanyId is NULL. Returning BadRequest: 'Company ID is required.'");
+        if (!service.CompanyId.HasValue)
             return BadRequest("Company ID is required.");
-        }
 
-        var companyCount = await _companyContext.Companies.CountAsync();
-        Console.WriteLine($"DEBUG: Total companies visible to _companyContext: {companyCount}");
-        
         var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value);
-        Console.WriteLine($"DEBUG: Company ID {service.CompanyId.Value} exists in DB: {companyExists}");
-        
         if (!companyExists)
-        {
             return BadRequest("The company does not exist.");
-        }
 
-        // --- Validação do trabalhador (MODIFICADO) ---
-        // A chamada HTTP para o UserManagementService e a sua validação foram removidas aqui.
-        // O ServiceManagementService NÃO verificará se o WorkerId existe em outro serviço.
-        // Se o WorkerId for obrigatório para o modelo Service, verifique apenas se tem um valor.
         if (!service.WorkerId.HasValue)
-        {
-            Console.WriteLine("DEBUG: WorkerId is NULL. Returning BadRequest: 'Worker ID is required.'");
             return BadRequest("Worker ID is required.");
-        }
-        // Se o WorkerId não for obrigatório, remova o 'if' acima também.
 
         var utcNow = DateTime.UtcNow;
         service.CreatedDate = utcNow;
@@ -302,96 +240,74 @@ public class ServiceController : ControllerBase
         return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
     }
 
-    // PATCH: api/services/5
+    // PATCH: api/service/5
     [HttpPatch("{id}")]
     public async Task<IActionResult> PatchService(int id, Service service)
     {
         var existingService = await _context.Services.FindAsync(id);
         if (existingService == null)
             return NotFound("The service does not exist.");
-        
-        if(service.Priority != null)
+
+        if (service.Priority != null)
             existingService.Priority = service.Priority;
-        
-        if(service.Category != null)
+
+        if (service.Category != null)
             existingService.Category = service.Category;
 
         if (service.CompanyId.HasValue)
         {
-            try
-            {
-                var existingCompany = await _companyContext.Companies.FindAsync(service.CompanyId);
-                if (existingCompany.Id == null)
-                    return BadRequest("The company does not exist or Company ID is required.");
-                else
-                    existingService.CompanyId = service.CompanyId;
-            }
-            catch (Exception ex){
-                Console.WriteLine($"Error fetching company with ID {service.CompanyId}: {ex.Message}");
-                return BadRequest("An error occurred while fetching the company.");
-            }
-        }    
-        
-        if(service.WorkerId != null)
-        {
-            if (await GetWorkerDetails(service.WorkerId.Value) == null)
-                return BadRequest("Worker ID is required.");
-            else
-                existingService.WorkerId = service.WorkerId.Value;
+            var existingCompany = await _companyContext.Companies.FindAsync(service.CompanyId);
+            if (existingCompany == null)
+                return BadRequest("The company does not exist or Company ID is required.");
+            existingService.CompanyId = service.CompanyId;
         }
 
-        if (service.PartsId != null)
+        if (service.WorkerId.HasValue)
         {
-            try
-            {
-                if (!service.PartsId.HasValue || !await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value))
-                    return BadRequest("The parts does not exist or Parts ID is required.");
-                else
-                    existingService.PartsId = service.PartsId.Value;
-            }catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching parts with ID {service.PartsId}: {ex.Message}");
-                return BadRequest("An error occurred while fetching the parts.");
-            }
-        }    
-        
-        if(service.DateStarted != null)
+            var workerExists = await GetWorkerDetails(service.WorkerId.Value);
+            if (workerExists == null)
+                return BadRequest("Worker ID is required.");
+            existingService.WorkerId = service.WorkerId;
+        }
+
+        if (service.PartsId.HasValue)
+        {
+            var partsExists = await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value);
+            if (!partsExists)
+                return BadRequest("The parts does not exist or Parts ID is required.");
+            existingService.PartsId = service.PartsId;
+        }
+
+        if (service.DateStarted != null)
             existingService.DateStarted = service.DateStarted;
 
-        if(service.DateFinished != null)
+        if (service.DateFinished != null)
             existingService.DateFinished = service.DateFinished;
 
-        if(service.MotiveRescheduled != null)
+        if (service.MotiveRescheduled != null)
             existingService.MotiveRescheduled = service.MotiveRescheduled;
 
-        if(service.Description != null)
+        if (service.Description != null)
             existingService.Description = service.Description;
 
-        if (service.StatusId != null)
+        if (service.StatusId.HasValue)
         {
-            try
-            {
-                if (!service.StatusId.HasValue || !await _statusContext.Statuss.AnyAsync(s => s.Id == service.StatusId.Value))
-                    return BadRequest("The status does not exist or Status ID is required.");
-                else
-                    existingService.StatusId = service.StatusId.Value;
-            }catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching status with ID {service.StatusId}: {ex.Message}");
-                return BadRequest("An error occurred while fetching the status.");
-            }
+            var statusExists = await _statusContext.Statuss.AnyAsync(s => s.Id == service.StatusId.Value);
+            if (!statusExists)
+                return BadRequest("The status does not exist or Status ID is required.");
+            existingService.StatusId = service.StatusId;
         }
 
-        if(service.MachineId != null)
-            existingService.MachineId = service.MachineId;  
+        if (service.MachineId != null)
+            existingService.MachineId = service.MachineId;
 
-        if(service.ClientSignature != null) 
+        if (service.ClientSignature != null)
             existingService.ClientSignature = service.ClientSignature;
 
         if (service.CreatedDate != null)
             return BadRequest("CreatedDate cannot be modified.");
 
-        if(service.ModifiedDate != null)
+        if (service.ModifiedDate != null)
             return BadRequest("ModifiedDate cannot be modified.");
 
         existingService.ModifiedDate = DateTime.UtcNow;
@@ -403,19 +319,15 @@ public class ServiceController : ControllerBase
         catch (DbUpdateConcurrencyException)
         {
             if (!ServiceExists(id))
-            {
                 return NotFound();
-            }
             else
-            {
                 throw;
-            }
         }
 
         return NoContent();
     }
 
-    // DELETE: api/services/5
+    // DELETE: api/service/5
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteService(int id)
     {

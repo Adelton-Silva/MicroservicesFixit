@@ -1,0 +1,166 @@
+/* src/assets/css/sidebar.css */
+
+/* Estilos Gerais para a página - certifique-se de que o body/root da sua aplicação
+   tem display: flex para que o sidebar e o conteúdo principal fiquem lado a lado.
+   Se você já tem um layout wrapper, adapte. */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif; /* Ou a sua fonte preferida */
+    background-color: #F8F5EE; /* Cor de fundo geral da página como na imagem */
+}
+
+#root { /* Se o seu App.js renderiza dentro de um #root div */
+    display: flex;
+    min-height: 100vh; /* Garante que o container principal ocupa toda a altura */
+}
+
+/* ---------------------------------------------------- */
+/* Sidebar Styles */
+/* ---------------------------------------------------- */
+.sidebar {
+    width: 260px; /* Largura do sidebar */
+     background-color: #EE964B !important; /* Cor principal do sidebar (laranja/pêssego) */
+    color: #fff; /* Cor do texto branco */
+    position: fixed; /* Fixa o sidebar na tela */
+    left: 0;
+    top: 0;
+    height: 100vh; /* Ocupa toda a altura da viewport */
+    padding-top: 20px; /* Espaçamento no topo para o logo */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); /* Sombra sutil para profundidade */
+    display: flex;
+    flex-direction: column; /* Organiza o conteúdo verticalmente */
+    overflow-y: auto; /* Adiciona scroll se o conteúdo for muito grande */
+
+    /* Bordas arredondadas nos cantos direitos */
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+
+    /* Remova a imagem de fundo se não for mais necessária */
+    .sidebar-background {
+        display: none; /* Esconde a div da imagem de fundo */
+    }
+}
+
+
+/* Estilos do Logo (FiXIT e ícone) */
+.sidebar .logo {
+    padding: 0 20px; /* Espaçamento interno */
+    margin-bottom: 30px; /* Espaço abaixo do logo */
+    display: flex;
+    align-items: center; /* Alinha o logo e o texto verticalmente */
+}
+
+.sidebar .logo .logo-mini {
+    /* Estilos para o container do logo pequeno */
+    display: flex;
+    align-items: center;
+    margin-right: 10px; /* Espaço entre o logo e o texto "FiXIT" */
+}
+
+.sidebar .logo .logo-img {
+    width: 40px; /* Tamanho do seu ícone de logo */
+    height: 40px;
+    border-radius: 50%; /* Se o logo for redondo */
+    overflow: hidden; /* Garante que a imagem se ajuste ao container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar .logo .logo-img img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.sidebar .logo .simple-text {
+    color: #fff; /* Cor do texto "FiXIT" branco */
+    font-size: 1.5em; /* Tamanho da fonte do "FiXIT" */
+    font-weight: bold;
+    text-decoration: none; /* Remove sublinhado do link */
+    white-space: nowrap; /* Evita que o texto quebre linha */
+}
+
+/* ---------------------------------------------------- */
+/* Navigation Links Styles */
+/* ---------------------------------------------------- */
+.sidebar .nav {
+    flex-direction: column; /* Itens da navegação em coluna */
+    padding: 0 15px; /* Espaçamento lateral para os itens de menu */
+    list-style: none; /* Remove bullets padrão da lista */
+}
+
+.sidebar .nav li {
+    margin-bottom: 8px; /* Espaçamento entre os itens do menu */
+}
+
+.sidebar .nav .nav-link {
+    display: flex;
+    align-items: center; /* Alinha o ícone e o texto verticalmente */
+    padding: 12px 15px; /* Preenchimento para cada item clicável */
+    color: #fff; /* Cor do texto e ícone normal */
+    text-decoration: none;
+    font-size: 1.05em;
+    border-radius: 8px; /* Pequeno arredondamento para os itens */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sidebar .nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15); /* Fundo sutil no hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra no hover para efeito de elevação */
+}
+
+/* Estilo para o item de menu ativo */
+.sidebar .nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.25); /* Fundo mais proeminente para ativo */
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* Sombra mais forte para ativo */
+}
+
+.sidebar .nav .nav-link i {
+    font-size: 1.4em; /* Tamanho dos ícones */
+    margin-right: 15px; /* Espaçamento entre ícone e texto */
+    color: #fff; /* Cor dos ícones brancos */
+}
+
+.sidebar .nav .nav-link p {
+    margin: 0; /* Remove margem padrão do parágrafo */
+    white-space: nowrap; /* Impede que o texto do menu quebre linha */
+}
+
+/* ---------------------------------------------------- */
+/* Main Content Area - Onde o resto da sua aplicação fica */
+/* ---------------------------------------------------- */
+.main-panel { /* Assumindo que você tem um wrapper para o conteúdo principal */
+    margin-left: 260px; /* Deve ser a mesma largura do sidebar para que o conteúdo não fique por baixo */
+    flex-grow: 1; /* Ocupa o restante do espaço horizontal */
+    padding: 20px; /* Espaçamento interno */
+    box-sizing: border-box; /* Inclui padding na largura/altura */
+}
+
+/* Estilos para o cabeçalho (OnBoard Tickets, New Ticket, History)
+   Isso estaria num componente separado, não no sidebar. */
+.dashboard-header { /* Exemplo de classe para o header superior */
+    background-color: #fff; /* Fundo branco ou claro */
+    border-radius: 10px; /* Bordas arredondadas */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08); /* Sombra suave */
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-around; /* Distribui os itens igualmente */
+    margin-bottom: 30px; /* Espaço abaixo do cabeçalho */
+}
+
+.dashboard-header-tab {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #555;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    border-bottom: 3px solid transparent; /* Para a transição */
+}
+
+.dashboard-header-tab.active {
+    color: #EE964B; /* Cor do texto para a tab ativa */
+    border-bottom: 3px solid #EE964B; /* Linha laranja abaixo da tab ativa */
+}

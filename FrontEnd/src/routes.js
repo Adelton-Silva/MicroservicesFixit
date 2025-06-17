@@ -18,6 +18,7 @@
 import Dashboard from "views/Dashboard.js";
 import UserProfile from "views/UserProfile.js";
 import ServiceDashboardPage from "views/ServiceDashboardPaje.js";
+import UserDashboardPage from "views/UserDashboardPage.js";
 import Typography from "views/Typography.js";
 import Icons from "views/Icons.js";
 import Maps from "views/Maps.js";
@@ -54,7 +55,7 @@ const dashboardRoutes = [
     path: "/users",
     name: "Users",
     icon: "nc-icon nc-circle-09",
-    component: UserTable,
+    component:  UserDashboardPage,
     layout: "/admin"
   },
 ];
