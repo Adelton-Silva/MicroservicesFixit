@@ -32,6 +32,22 @@ services:
       retries: 10
       start_period: 30s
 
+  db-init:
+    image: postgres
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1992
+      POSTGRES_DB: servicemanagment
+    networks:
+      - mynetwork
+    volumes:
+      - ./init.sh:/init.sh
+      - ./Query/CreateTable.sql:/docker-entrypoint-initdb.d/CreateTable.sql
+      - ./Query/InsertData.sql:/docker-entrypoint-initdb.d/InsertData.sql
+    entrypoint: ["/bin/bash", "/init.sh"]
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -41,6 +57,8 @@ services:
       - mynetwork
     volumes:
       - mongodb_data:/data/db
+      - ./Query/Users.json:/docker-entrypoint-initdb.d/Users.json:ro
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017 --quiet
       interval: 10s
@@ -67,8 +85,8 @@ services:
       context: ./ServiceManagementService
       dockerfile: Dockerfile
     container_name: service_management_service
-    # ports:
-    #   - "5002:5002"
+    ports:
+      - "5002:5002"
     networks:
       - mynetwork
     depends_on:
@@ -104,8 +122,8 @@ services:
       context: ./UserManagementService
       dockerfile: Dockerfile
     container_name: user_management_service
-    # ports:
-    #   - "5001:5001"
+    ports:
+      - "5001:5001"
     networks:
       - mynetwork
     depends_on:

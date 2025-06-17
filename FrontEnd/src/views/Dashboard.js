@@ -237,12 +237,18 @@ const Dashboard = () => {
               </Card.Body>
               <Card.Footer className="text-center">
                 <hr />
+<<<<<<< HEAD
                 <div
                   className="stats"
                   style={{ cursor: "pointer" }}
                   onClick={() => redirectToServicePriority(card.category.replace("Priority ", ""))}
                 >
                   <i className="nc-icon nc-tap-01" style={{ marginRight: 5 }}></i>{card.footer}
+=======
+                {/* TODO: meter este onClick a funcionar */}
+                <div className="stats" onClick={() => redirectToServicePriority(card.category.replace("Priority ", ""))}> 
+                  <i className="nc-icon nc-tap-01" style={{ marginRight: "5px" }}></i>{card.footer}
+>>>>>>> 9f2d7f1ce27581fd20f32825dd961a5af40cb0e4
                 </div>
               </Card.Footer>
             </Card>

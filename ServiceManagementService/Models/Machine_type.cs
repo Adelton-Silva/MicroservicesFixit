@@ -9,9 +9,11 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [Column("description")]
+        [StringLength(150, ErrorMessage = "Description cannot exceed 150 characters.")]
         public string? Description { get; set; }
 
         [Column("isActive")]
+        [Range(0, 1, ErrorMessage = "IsActive must be either 0 (inactive) or 1 (active).")]
         public int? Isactive { get; set; }
 
         [Column("created_date")]

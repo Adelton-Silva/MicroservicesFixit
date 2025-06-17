@@ -35,8 +35,9 @@ INSERT INTO public.appointments (id, title, client_id, machine_id, status_id, da
 
 
 INSERT INTO public.services (id, company_id, worker_id, parts_id, date_started, date_finished, motive_rescheduled, client_signature, created_date, modified_date, status_id, priority, category, machine_id, description) VALUES
-(1, 1, NULL, 1, '2025-06-15', NULL, NULL, NULL, NOW(), NOW(), 1, 'High', 'Maintenance', 1, 'Routine Lathe checkup'),
-(2, 2, NULL, 2, '2025-06-10', NULL, 'Urgent failure reported', NULL, NOW(), NOW(), 2, 'Urgent', 'Repair', 2, 'Emergency CNC service');
+(1, 1, 1, 1, '2025-06-15', NULL, NULL, NULL, NOW(), NOW(), 1, 'High', 'Maintenance', 1, 'Routine Lathe checkup'),
+(2, 2, 2, 2, '2025-06-10', NULL, 'Urgent failure reported', NULL, NOW(), NOW(), 2, 'Urgent', 'Repair', 2, 'Emergency CNC service');
+(19, 1, 1, 1, '2025-06-15', NULL, 'Urgent failure reported', NULL, NOW(), NOW(), 2, 'Urgent', 'Repair', 2, 'Routine Lathe checkup'),
 
 -- Generated Services over the last 5 months
 
