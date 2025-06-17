@@ -85,8 +85,8 @@ services:
       context: ./ServiceManagementService
       dockerfile: Dockerfile
     container_name: service_management_service
-    # ports:
-    #   - "5002:5002"
+    ports:
+      - "5002:5002"
     networks:
       - mynetwork
     depends_on:
@@ -122,8 +122,8 @@ services:
       context: ./UserManagementService
       dockerfile: Dockerfile
     container_name: user_management_service
-    # ports:
-    #   - "5001:5001"
+    ports:
+      - "5001:5001"
     networks:
       - mynetwork
     depends_on:

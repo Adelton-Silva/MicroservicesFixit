@@ -9,6 +9,7 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [Column("model")]
+        [StringLength(150, ErrorMessage = "Description cannot exceed 150 characters.")]
         public string? Model { get; set; }
 
         [ForeignKey("machine_type_id")]
