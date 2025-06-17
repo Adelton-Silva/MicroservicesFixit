@@ -175,7 +175,7 @@ function ServiceHistory() {
           <Card className="strpied-tabled-with-hover">
             <Card.Header>
               <Card.Title as="h4">Services</Card.Title>
-              <p className="card-category">Services List</p>
+              <p className="card-category">Services History List</p>
             </Card.Header>
             <Card.Body className="table-full-width table-responsive px-0">
               {loading ? (

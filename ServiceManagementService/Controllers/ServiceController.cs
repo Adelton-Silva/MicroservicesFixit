@@ -215,30 +215,47 @@ public class ServiceController : ControllerBase
 
     // POST: api/service
     [HttpPost]
-    public async Task<ActionResult<Service>> PostService(Service service)
+public async Task<ActionResult<Service>> PostService([FromBody] CreateServiceDto dto)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState);
+
+    if (!dto.CompanyId.HasValue)
+        return BadRequest("Company ID is required.");
+
+    var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == dto.CompanyId.Value);
+    if (!companyExists)
+        return BadRequest("The company does not exist.");
+
+    if (!dto.WorkerId.HasValue)
+        return BadRequest("Worker ID is required.");
+
+    var utcNow = DateTime.UtcNow;
+
+    var service = new Service
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        Priority = dto.Priority,
+        Category = dto.Category,
+        CompanyId = dto.CompanyId,
+        WorkerId = dto.WorkerId,
+        PartsId = dto.PartsId,
+        DateStarted = dto.DateStarted,
+        DateFinished = dto.DateFinished,
+        MotiveRescheduled = dto.MotiveRescheduled,
+        Description = dto.Description,
+        StatusId = dto.StatusId,
+        MachineId = dto.MachineId,
+        ClientSignature = dto.ClientSignature,
+        CreatedDate = utcNow,
+        ModifiedDate = utcNow
+    };
 
-        if (!service.CompanyId.HasValue)
-            return BadRequest("Company ID is required.");
+    _context.Services.Add(service);
+    await _context.SaveChangesAsync();
 
-        var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value);
-        if (!companyExists)
-            return BadRequest("The company does not exist.");
+    return CreatedAtAction(nameof(GetServive), new { id = service.Id }, service);
+}
 
-        if (!service.WorkerId.HasValue)
-            return BadRequest("Worker ID is required.");
-
-        var utcNow = DateTime.UtcNow;
-        service.CreatedDate = utcNow;
-        service.ModifiedDate = utcNow;
-
-        _context.Services.Add(service);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
-    }
 
     // PATCH: api/service/5
     [HttpPatch("{id}")]
