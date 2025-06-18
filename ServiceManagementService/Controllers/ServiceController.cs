@@ -71,7 +71,10 @@ public class ServiceController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetService(
         [FromQuery] string? priority,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
         [FromQuery] int? company_id,
+        [FromQuery] int? status,
         [FromQuery] int? worker_id,
         [FromQuery] int? status_id,
         [FromQuery] int? excludeStatusId,
@@ -91,11 +94,50 @@ public class ServiceController : ControllerBase
             .Include(s => s.Machine)
             .AsQueryable();
 
+        if (startDate.HasValue && startDate.Value.Kind != DateTimeKind.Utc)
+            startDate = DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc);
+
+        if (endDate.HasValue && endDate.Value.Kind != DateTimeKind.Utc)
+            endDate = DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc);
+
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            // var startMonth = startDate.Value.Month;
+            // var startYear = startDate.Value.Year;
+            // var endMonth = endDate.Value.Month;
+            // var endYear = endDate.Value.Year;
+            query = query.Where(a =>
+                (a.DateStarted.HasValue && a.DateStarted.Value >= startDate.Value && a.DateStarted.Value <= endDate.Value) ||
+                (a.DateFinished.HasValue && a.DateFinished.Value >= startDate.Value && a.DateFinished.Value <= endDate.Value)
+            );
+            
+        }
+        else if (startDate.HasValue)
+        {
+            var month = startDate.Value.Month;
+            var year = startDate.Value.Year;
+            query = query.Where(a => a.DateStarted.HasValue &&
+                                    a.DateStarted.Value.Month == month &&
+                                    a.DateStarted.Value.Year == year);
+        }
+        else if (endDate.HasValue)
+        {
+            var month = endDate.Value.Month;
+            var year = endDate.Value.Year;
+            query = query.Where(a => a.DateFinished.HasValue &&
+                                    a.DateFinished.Value.Month == month &&
+                                    a.DateFinished.Value.Year == year);
+        }
+        if (status.HasValue)
+        {
+            query = query.Where(a => a.StatusId == status.Value);
+        }
+
         if (!string.IsNullOrEmpty(priority))
         {
             query = query.Where(s => s.Priority == priority);
         }
-
         if (company_id.HasValue)
         {
             query = query.Where(a => a.CompanyId == company_id.Value);

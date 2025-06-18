@@ -8,20 +8,39 @@ import {
   Spinner
 } from "react-bootstrap";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+
+const fetchCounts = async (userToken) => {
+  const priorities = ["Low", "Medium", "High", "Urgent"];
+  const newCounts = {};
+  for (const priority of priorities) {
+    try {
+      const response = await axios.get(`/service?priority=${priority}`, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+      newCounts[priority] = Array.isArray(response.data.data) ? response.data.data.length : 0;
+    } catch {
+      newCounts[priority] = 0;
+    }
+  }
+  return newCounts;
+};
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [counts, setCounts] = useState({
-    Low: 0,
-    Medium: 0,
-    High: 0,
-    Urgent: 0,
-  });
+  // const [counts, setCounts] = useState({
+  //   Low: 0,
+  //   Medium: 0,
+  //   High: 0,
+  //   Urgent: 0,
+  // });
   const [startedPerMonth, setStartedPerMonth] = useState({});
   const [finishedPerMonth, setFinishedPerMonth] = useState({});
   const [priorityThisMonth, setPriorityThisMonth] = useState({});
   const [serviceByWorker, setServiceByWorker] = useState({});
   const [workers, setWorkers] = useState([]);
+
+  const userToken = localStorage.getItem("userToken");
 
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const getLastMonths = (n) => {
@@ -33,36 +52,19 @@ const Dashboard = () => {
   };
   const labels = getLastMonths(6);
 
-  useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
-    if (!userToken) {
-      setLoading(false);
-      return;
-    }
+  const {
+      data: counts = { Low: 0, Medium: 0, High: 0, Urgent: 0 },
+      isLoading: loadingCounts,
+    } = useQuery({
+      queryKey: ["counts", userToken],
+      queryFn: () => fetchCounts(userToken),
+      enabled: !!userToken,
+    });
 
-    const fetchCounts = async () => {
-      const priorities = ["Low", "Medium", "High", "Urgent"];
-      const newCounts = {};
-      for (const priority of priorities) {
-        try {
-          const response = await axios.get(`/service?priority=${priority}`, {
-            headers: { Authorization: `Bearer ${userToken}` },
-          });
-          newCounts[priority] = Array.isArray(response.data.data) ? response.data.data.length : 0;
-          console.log("Counts for", priority, ":", newCounts[priority]);
-        } catch {
-          newCounts[priority] = 0;
-        }
-      }
-      setCounts(newCounts);
-      setLoading(false);
-    };
-    fetchCounts();
-  }, []);
-
+  const loadingWheel = loadingCounts
 
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
+
     if (!userToken) {
       setLoading(false);
       return;
@@ -77,14 +79,14 @@ const Dashboard = () => {
         const start = new Date(Date.UTC(now.getFullYear(), now.getMonth() - i, 1));
         const format = (date) => date.toISOString().split(".")[0];
         const startDate = format(start);
-
+        
         try {
           const res = await axios.get(`/service?startDate=${startDate}`, {
             headers: { Authorization: `Bearer ${userToken}` },
           });
           startedCounts[start.getMonth() + 1] = Array.isArray(res.data.data) ? res.data.data.length : 0;
         } catch {
-          startedCounts[start.getMonth() + 1] = 0;
+          startedCounts[start.getMonth() + 1 ] = 0;
         }
 
         try {
@@ -96,7 +98,7 @@ const Dashboard = () => {
           finishedCounts[start.getMonth() + 1] = 0;
         }
       }
-
+      
       setStartedPerMonth(startedCounts);
       setFinishedPerMonth(finishedCounts);
       setLoading(false);
@@ -105,7 +107,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
+
     if (!userToken) {
       setLoading(false);
       return;
@@ -125,7 +127,7 @@ const Dashboard = () => {
         });
         const data = Array.isArray(res.data.data) ? res.data.data : [];
         const total = data.length;
-
+        
         const counts = { Low: 0, Medium: 0, High: 0, Urgent: 0 };
         data.forEach(service => {
           if (counts[service.priority] !== undefined) {
@@ -148,7 +150,7 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
+    
     if (!userToken) {
       setLoading(false);
       return;
@@ -175,7 +177,7 @@ const Dashboard = () => {
               `/service?startDate=${startDate}&endDate=${endDate}&worker_id=${user.id}`,
               { headers: { Authorization: `Bearer ${userToken}` } }
             );
-            ticketByWorker[user.id] = Array.isArray(res.data.items) ? res.data.items.length : 0;
+            ticketByWorker[user.id] = Array.isArray(res.data.data) ? res.data.data.length : 0;
           })
         );
 
@@ -230,7 +232,7 @@ const Dashboard = () => {
                   <Col xs="6">
                     <div className="numbers text-center">
                       <p className="card-category" style={{ color: card.color }}>{card.category}</p>
-                      {loading ? <Spinner animation="border" size="sm" /> : <Card.Title as="h4">{card.data}</Card.Title>}
+                      {loadingWheel ? <Spinner animation="border" size="sm" /> : <Card.Title as="h4">{card.data}</Card.Title>}
                     </div>
                   </Col>
                 </Row>
