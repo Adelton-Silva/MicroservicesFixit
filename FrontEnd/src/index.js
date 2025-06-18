@@ -2,6 +2,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Route, Switch, useHistory } from "react-router-dom"; // Importe useHistory
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Login from "views/Login.js";
 import AdminLayout from "layouts/Admin.js";
@@ -17,6 +18,8 @@ import "./assets/css/light-bootstrap-dashboard-react.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
+
+const queryClient = new QueryClient();
 
 const App = () => {
   const history = useHistory(); // Acessa o objeto history
@@ -36,7 +39,9 @@ const App = () => {
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-  <BrowserRouter>
-    <App /> {/* Renderiza o componente App que usa useHistory */}
-  </BrowserRouter>
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </QueryClientProvider>
 );
