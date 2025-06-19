@@ -48,6 +48,7 @@ namespace UserManagementService.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
             // Verificar se o usuário já existe

@@ -31,11 +31,20 @@
         { "Host": "user_management_service", "Port": 5001 }
       ],
       "UpstreamPathTemplate": "/users/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" , "OPTIONS" ],
+      "UpstreamHttpMethod": [ "GET", "PATCH",  "DELETE" , "OPTIONS" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
       }
+    },
+    {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "user_management_service", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/users",
+      "UpstreamHttpMethod": [ "POST" ]
     },
     {
       "DownstreamPathTemplate": "/api/appointments/{everything}",
