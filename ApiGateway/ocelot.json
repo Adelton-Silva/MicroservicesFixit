@@ -25,6 +25,15 @@
         }
     },
     {
+      "DownstreamPathTemplate": "/api/users/email",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "user_management_service", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/users/email",
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
