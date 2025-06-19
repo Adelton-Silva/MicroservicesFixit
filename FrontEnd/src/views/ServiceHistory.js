@@ -13,7 +13,7 @@ import {
   Button,
 } from "react-bootstrap";
 
-function ServiceHistory() {
+function ServiceTable() {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
@@ -46,8 +46,8 @@ function ServiceHistory() {
     };
 
     Promise.all([
-      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&status_id=2`, config),
-      axios.get("/users?pageNumber=1&pageSize=100", config), // <- Aqui você pode aumentar o pageSize conforme necessário
+      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&includeStatusId=3`, config),
+      axios.get("/users?pageNumber=1&pageSize=100", config),
       axios.get("/company?pageNumber=1&pageSize=100", config),
       axios.get("/machine?pageNumber=1&pageSize=100", config),
       axios.get("/status?pageNumber=1&pageSize=100", config)
@@ -74,7 +74,7 @@ function ServiceHistory() {
         }));
 
         setServices(mappedServices);
-        setUsers(usersResponse.data.items || []); // <- Correção principal aqui
+        setUsers(usersResponse.data.items || []);
         setClients(clientsResponse.data.items || []);
         setMachines(machinesResponse.data.items || []);
         setStatuses(statusesResponse.data.items || []);
@@ -166,8 +166,6 @@ function ServiceHistory() {
     setSelectedService(null);
   };
 
-  const filteredServices = services.filter(service => parseInt(service.statusId) == 2);
-
   return (
     <Container fluid>
       <Row>
@@ -175,7 +173,7 @@ function ServiceHistory() {
           <Card className="strpied-tabled-with-hover">
             <Card.Header>
               <Card.Title as="h4">Services</Card.Title>
-              <p className="card-category">Services History List</p>
+              <p className="card-category">Services List</p>
             </Card.Header>
             <Card.Body className="table-full-width table-responsive px-0">
               {loading ? (
@@ -196,12 +194,12 @@ function ServiceHistory() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredServices.length === 0 ? (
+                      {services.length === 0 ? (
                         <tr>
                           <td colSpan="8" className="text-center">No services found.</td>
                         </tr>
                       ) : (
-                        filteredServices.map((service) => (
+                        services.map((service) => (
                           <tr key={service.id}>
                             <td>{service.id}</td>
                             <td>{service.priority}</td>
@@ -299,4 +297,4 @@ function ServiceHistory() {
   );
 }
 
-export default ServiceHistory;
+export default ServiceTable;

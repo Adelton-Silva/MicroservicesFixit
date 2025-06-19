@@ -21,6 +21,8 @@ function EditServiceModal({ show, onHide, service, onSave }) {
     workerId: "",
     statusId: "",
     observation: "",
+    dateStarted: new Date().toISOString().slice(0, 10),
+    dateFinished: new Date().toISOString().slice(0, 10),
   });
 
   const [users, setUsers] = useState([]);
@@ -89,6 +91,8 @@ function EditServiceModal({ show, onHide, service, onSave }) {
         workerId: service.workerId ? String(service.workerId) : "",
         statusId: service.statusId !== null && service.statusId !== undefined ? String(service.statusId) : "",
         observation: service.description || "",
+        dateStarted: service.dateStarted || new Date().toISOString().slice(0, 10),
+        dateFinished: service.dateFinished || new Date().toISOString().slice(0, 10),
       });
     } else {
       setFormData({
@@ -99,6 +103,8 @@ function EditServiceModal({ show, onHide, service, onSave }) {
         workerId: "",
         statusId: "",
         observation: "",
+        dateStarted: new Date().toISOString().slice(0, 10),
+        dateFinished: new Date().toISOString().slice(0, 10),
       });
     }
   }, [service]);
@@ -138,6 +144,8 @@ function EditServiceModal({ show, onHide, service, onSave }) {
         machineId: formData.machine === "" ? null : parseInt(formData.machine),
         statusId: formData.statusId === "" ? null : parseInt(formData.statusId),
         description: formData.observation,
+        dateStarted: formData.dateStarted,
+        dateFinished: formData.dateFinished
       };
 
       console.log("Payload to be updated:", updatedServicePayload);
@@ -345,6 +353,32 @@ function EditServiceModal({ show, onHide, service, onSave }) {
             </Row>
 
             <Row className="mt-3">
+              <Col md="6">
+                <Form.Group className="mb-3">
+                  <label>Date Started</label>
+                  <Form.Control
+                    type="date"
+                    name="dateStarted"
+                    value={formData.dateStarted}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md="6">
+                <Form.Group className="mb-3">
+                  <label>Date Finished</label>
+                  <Form.Control
+                    type="date"
+                    name="dateFinished"
+                    value={formData.dateFinished}
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+
+
+            <Row className="mt-3">
               <Col md="12">
                 <Form.Group className="mb-3">
                   <label>Description</label>
@@ -404,6 +438,8 @@ EditServiceModal.propTypes = {
     status: PropTypes.string, // This is the string description from ServiceTable
     description: PropTypes.string,
     machine: PropTypes.object, // Added machine to propTypes
+    dateStarted: PropTypes.string,
+    dateFinished: PropTypes.string
   }).isRequired,
   onSave: PropTypes.func.isRequired,
 };

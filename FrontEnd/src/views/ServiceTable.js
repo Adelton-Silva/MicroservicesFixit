@@ -46,7 +46,7 @@ function ServiceTable() {
     };
 
     Promise.all([
-      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&excludeStatusId=2`, config),
+      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&excludeStatusId=3`, config),
       axios.get("/users?pageNumber=1&pageSize=100", config),
       axios.get("/company?pageNumber=1&pageSize=100", config),
       axios.get("/machine?pageNumber=1&pageSize=100", config),
