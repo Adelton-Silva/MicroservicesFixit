@@ -13,7 +13,7 @@ import {
   Button,
 } from "react-bootstrap";
 
-function ServiceTable() {
+function ServiceHistory() {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
@@ -46,8 +46,8 @@ function ServiceTable() {
     };
 
     Promise.all([
-      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&excludeStatusId=2`, config),
-      axios.get("/users?pageNumber=1&pageSize=100", config),
+      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&status_id=2`, config),
+      axios.get("/users?pageNumber=1&pageSize=100", config), // <- Aqui você pode aumentar o pageSize conforme necessário
       axios.get("/company?pageNumber=1&pageSize=100", config),
       axios.get("/machine?pageNumber=1&pageSize=100", config),
       axios.get("/status?pageNumber=1&pageSize=100", config)
@@ -74,7 +74,7 @@ function ServiceTable() {
         }));
 
         setServices(mappedServices);
-        setUsers(usersResponse.data.items || []);
+        setUsers(usersResponse.data.items || []); // <- Correção principal aqui
         setClients(clientsResponse.data.items || []);
         setMachines(machinesResponse.data.items || []);
         setStatuses(statusesResponse.data.items || []);
@@ -166,6 +166,8 @@ function ServiceTable() {
     setSelectedService(null);
   };
 
+  const filteredServices = services.filter(service => parseInt(service.statusId) == 2);
+
   return (
     <Container fluid>
       <Row>
@@ -173,7 +175,7 @@ function ServiceTable() {
           <Card className="strpied-tabled-with-hover">
             <Card.Header>
               <Card.Title as="h4">Services</Card.Title>
-              <p className="card-category">Services List</p>
+              <p className="card-category">Services History List</p>
             </Card.Header>
             <Card.Body className="table-full-width table-responsive px-0">
               {loading ? (
@@ -194,12 +196,12 @@ function ServiceTable() {
                       </tr>
                     </thead>
                     <tbody>
-                      {services.length === 0 ? (
+                      {filteredServices.length === 0 ? (
                         <tr>
                           <td colSpan="8" className="text-center">No services found.</td>
                         </tr>
                       ) : (
-                        services.map((service) => (
+                        filteredServices.map((service) => (
                           <tr key={service.id}>
                             <td>{service.id}</td>
                             <td>{service.priority}</td>
@@ -210,8 +212,6 @@ function ServiceTable() {
                             <td>{service.status}</td>
                             <td>
                               <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                                <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
-                                <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
                                 <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
                                 <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
                               </div>
@@ -299,4 +299,4 @@ function ServiceTable() {
   );
 }
 
-export default ServiceTable;
+export default ServiceHistory;

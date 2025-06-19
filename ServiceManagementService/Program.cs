@@ -7,6 +7,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
 // Carregar as variáveis de ambiente, caso existam
 builder.Configuration.AddEnvironmentVariables();
 

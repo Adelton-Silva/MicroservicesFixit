@@ -5,25 +5,11 @@ import { Nav } from "react-bootstrap";
 
 import PropTypes from 'prop-types';
 
-// If you're not using this logo, you can remove this line
-// import logo from "assets/img/reactlogo.png";
 
 function Sidebar({ color, image, routes }) {
   const location = useLocation(); // Still needed for the 'activeRoute' on the <li>
-  
-  // Keep activeRoute if it's adding classes to the <li> element,
-  // but for NavLink's active state, we'll use 'end'.
-  // The 'activeRoute' function itself is the culprit for the substring match.
-  // If you want only NavLink to control the active state, you can remove this function entirely
-  // and the 'className={activeRoute(...)}' from the <li>.
+
   const activeRoute = (routeName) => {
-    // This logic is flawed for exact matching, and the 'NavLink end' prop is preferred.
-    // However, if the template *requires* a class on the <li> based on a broader match,
-    // you might need a more sophisticated 'activeRoute' or keep it as is if its only for styling
-    // that is separate from NavLink's active state.
-    // For now, let's assume NavLink's 'end' prop will handle the primary active state.
-    // If you remove this function, also remove 'className={activeRoute(...)}' from the <li>.
-    return location.pathname.startsWith(routeName) ? "active" : ""; // Slightly better: use startsWith
   };
 
   return (
@@ -55,17 +41,14 @@ function Sidebar({ color, image, routes }) {
             if (!prop.redirect && !prop.upgrade) {
               return (
                 <li
-                  // If you want the 'active' class on the <li> based on exact match,
-                  // you can change activeRoute to compare 'location.pathname === (prop.layout + prop.path)'.
-                  // However, often the NavLink's activeClassName is sufficient.
-                  className={activeRoute(prop.layout + prop.path)} // Consider if this is still needed or how it interacts
+                  className={activeRoute(prop.layout + prop.path)} 
                   key={key}
                 >
                   <NavLink
                     to={prop.layout + prop.path}
                     className="nav-link"
                     activeClassName="active"
-                    end // <--- THIS IS THE CRUCIAL ADDITION FOR EXACT MATCHING IN NavLink
+                    end 
                   >
                     <i className={prop.icon} />
                     <p>{prop.name}</p>
