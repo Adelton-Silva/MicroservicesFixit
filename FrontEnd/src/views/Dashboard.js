@@ -15,7 +15,7 @@ const fetchCounts = async (userToken) => {
   const newCounts = {};
   for (const priority of priorities) {
     try {
-      const response = await axios.get(`/service?priority=${priority}`, {
+      const response = await axios.get(`/service?priority=${priority}&excludeStatusId=3`, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
       newCounts[priority] = Array.isArray(response.data.data) ? response.data.data.length : 0;
