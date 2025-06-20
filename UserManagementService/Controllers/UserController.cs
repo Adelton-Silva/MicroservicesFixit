@@ -51,14 +51,33 @@ namespace UserManagementService.Controllers
             return Ok(user);
         }
 
+        // GET: api/users/email?test@gmail.com
+        [HttpGet("email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var user = await _repository.GetUserIdByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+            return Ok(user);
+        }
+
         // POST: api/users
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
             var existingUser = await _repository.GetUserByUsernameAsync(user.Username);
+            var existingEmail = await _repository.GetUserIdByEmailAsync(user.Email);
             if (existingUser != null)
             {
                 return Conflict(new { Message = "User already exists." });
+            }
+            if (existingEmail != null)
+            {
+                return Conflict(new { Message = "Email already exists." });
             }
 
             await _repository.AddUserAsync(user);

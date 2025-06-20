@@ -59,6 +59,10 @@ namespace UserManagementService.Repositories
 
         public async Task<User?> GetUserByIdAsync(int id) =>
                     await _users.Find(user => user.Id == id).FirstOrDefaultAsync();
+
+        public async Task<User?> GetUserIdByEmailAsync(string email) =>
+            await _users.Find(user => user.Email == email).FirstOrDefaultAsync();
+
         public async Task AddUserAsync(User user)
         {
             if (await GetUserByUsernameAsync(user.Username) != null)
