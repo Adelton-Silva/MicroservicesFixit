@@ -10,16 +10,17 @@ import {
   Modal,
   Button,
   Form,
-  InputGroup,
-  Pagination
+  InputGroup
 } from "react-bootstrap";
 import EditUserModal from './EditUser';
+
+const getField = (obj, field) => obj?.[field] ?? obj?.[field.charAt(0).toLowerCase() + field.slice(1)];
 
 function UserTable() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1); // Usar só 1 estado
   const pageSize = 10;
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState("username");
@@ -47,7 +48,7 @@ function UserTable() {
       return;
     }
 
-    axios.get(`/users?pageNumber=${page}&pageSize=${pageSize}&search=${search}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+    axios.get(`/users?page=${currentPage}&pageSize=${pageSize}&search=${search}&sortField=${sortField}&sortOrder=${sortOrder}`, {
       headers: {
         Authorization: `Bearer ${userToken}`,
       }
@@ -68,11 +69,11 @@ function UserTable() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search, sortField, sortOrder]);
+  }, [currentPage, search, sortField, sortOrder]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-    setPage(1); // Reset to first page
+    setCurrentPage(1); // Reset page when search
   };
 
   const handleSort = (field) => {
@@ -175,20 +176,26 @@ function UserTable() {
                 </tbody>
               </Table>
 
-              {/* Pagination with numbers */}
-              <Pagination className="justify-content-center">
-                <Pagination.Prev onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1} />
-                {[...Array(totalPages)].map((_, idx) => (
-                  <Pagination.Item
-                    key={idx + 1}
-                    active={page === idx + 1}
-                    onClick={() => setPage(idx + 1)}
-                  >
-                    {idx + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages} />
-              </Pagination>
+              {/* Paginação (igual à que você já usava) */}
+              <div className="d-flex justify-content-between align-items-center px-3 pb-3">
+                <Button
+                  variant="outline-primary"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline-primary"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             </>
           )}
         </Card.Body>

@@ -10,6 +10,9 @@ import ServiceHistory from './ServiceHistory';
 function ServiceDashboardPage() {
     const history = useHistory();
     const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const priorityFilter = params.get("priority"); 
+
 
     const getInitialTab = () => {
         const params = new URLSearchParams(location.search);
@@ -33,13 +36,13 @@ function ServiceDashboardPage() {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <TableList />;
+                return <TableList priorityFilter={priorityFilter} />;
             case 'newTicket':
                 return <AddServiceForm />;
             case 'history':
                 return <ServiceHistory />;
             default:
-                return <TableList />;
+                return <TableList priorityFilter={priorityFilter} />;
         }
     };
 

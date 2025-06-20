@@ -71,10 +71,14 @@ public class ServiceController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetService(
         [FromQuery] string? priority,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
         [FromQuery] int? company_id,
+        [FromQuery] int? status,
         [FromQuery] int? worker_id,
         [FromQuery] int? status_id,
         [FromQuery] int? excludeStatusId,
+        [FromQuery] int? includeStatusId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10
     )
@@ -91,11 +95,50 @@ public class ServiceController : ControllerBase
             .Include(s => s.Machine)
             .AsQueryable();
 
+        if (startDate.HasValue && startDate.Value.Kind != DateTimeKind.Utc)
+            startDate = DateTime.SpecifyKind(startDate.Value, DateTimeKind.Utc);
+
+        if (endDate.HasValue && endDate.Value.Kind != DateTimeKind.Utc)
+            endDate = DateTime.SpecifyKind(endDate.Value, DateTimeKind.Utc);
+
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            // var startMonth = startDate.Value.Month;
+            // var startYear = startDate.Value.Year;
+            // var endMonth = endDate.Value.Month;
+            // var endYear = endDate.Value.Year;
+            query = query.Where(a =>
+                (a.DateStarted.HasValue && a.DateStarted.Value >= startDate.Value && a.DateStarted.Value <= endDate.Value) ||
+                (a.DateFinished.HasValue && a.DateFinished.Value >= startDate.Value && a.DateFinished.Value <= endDate.Value)
+            );
+
+        }
+        else if (startDate.HasValue)
+        {
+            var month = startDate.Value.Month;
+            var year = startDate.Value.Year;
+            query = query.Where(a => a.DateStarted.HasValue &&
+                                    a.DateStarted.Value.Month == month &&
+                                    a.DateStarted.Value.Year == year);
+        }
+        else if (endDate.HasValue)
+        {
+            var month = endDate.Value.Month;
+            var year = endDate.Value.Year;
+            query = query.Where(a => a.DateFinished.HasValue &&
+                                    a.DateFinished.Value.Month == month &&
+                                    a.DateFinished.Value.Year == year);
+        }
+        if (status.HasValue)
+        {
+            query = query.Where(a => a.StatusId == status.Value);
+        }
+
         if (!string.IsNullOrEmpty(priority))
         {
             query = query.Where(s => s.Priority == priority);
         }
-
         if (company_id.HasValue)
         {
             query = query.Where(a => a.CompanyId == company_id.Value);
@@ -112,11 +155,18 @@ public class ServiceController : ControllerBase
         {
             query = query.Where(a => a.StatusId != excludeStatusId.Value);
         }
+        if (includeStatusId.HasValue)
+        {
+            query = query.Where(a => a.StatusId == includeStatusId.Value);
+        }
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
+        var now = DateTime.UtcNow;
+
         var services = await query
+            .OrderBy(s => s.DateStarted == null ? double.MaxValue : Math.Abs((s.DateStarted.Value - now).TotalSeconds))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -215,100 +265,111 @@ public class ServiceController : ControllerBase
 
     // POST: api/service
     [HttpPost]
-    public async Task<ActionResult<Service>> PostService(Service service)
+    public async Task<ActionResult<Service>> PostService([FromBody] CreateServiceDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        if (!service.CompanyId.HasValue)
+        if (!dto.CompanyId.HasValue)
             return BadRequest("Company ID is required.");
 
-        var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == service.CompanyId.Value);
+        var companyExists = await _companyContext.Companies.AnyAsync(st => st.Id == dto.CompanyId.Value);
         if (!companyExists)
             return BadRequest("The company does not exist.");
 
-        if (!service.WorkerId.HasValue)
+        if (!dto.WorkerId.HasValue)
             return BadRequest("Worker ID is required.");
 
         var utcNow = DateTime.UtcNow;
-        service.CreatedDate = utcNow;
-        service.ModifiedDate = utcNow;
+
+        var service = new Service
+        {
+            Priority = dto.Priority,
+            Category = dto.Category,
+            CompanyId = dto.CompanyId,
+            WorkerId = dto.WorkerId,
+            PartsId = dto.PartsId,
+            DateStarted = dto.DateStarted,
+            DateFinished = dto.DateFinished,
+            MotiveRescheduled = dto.MotiveRescheduled,
+            Description = dto.Description,
+            StatusId = dto.StatusId,
+            MachineId = dto.MachineId,
+            ClientSignature = dto.ClientSignature,
+            CreatedDate = utcNow,
+            ModifiedDate = utcNow
+        };
 
         _context.Services.Add(service);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
+        return CreatedAtAction(nameof(GetServive), new { id = service.Id }, service);
     }
+
 
     // PATCH: api/service/5
     [HttpPatch("{id}")]
-    public async Task<IActionResult> PatchService(int id, Service service)
+    public async Task<IActionResult> PatchService(int id, [FromBody] UpdateServiceDto serviceDto)
     {
         var existingService = await _context.Services.FindAsync(id);
         if (existingService == null)
             return NotFound("The service does not exist.");
 
-        if (service.Priority != null)
-            existingService.Priority = service.Priority;
+        if (serviceDto.Priority != null)
+            existingService.Priority = serviceDto.Priority;
 
-        if (service.Category != null)
-            existingService.Category = service.Category;
+        if (serviceDto.Category != null)
+            existingService.Category = serviceDto.Category;
 
-        if (service.CompanyId.HasValue)
+        if (serviceDto.CompanyId.HasValue)
         {
-            var existingCompany = await _companyContext.Companies.FindAsync(service.CompanyId);
+            var existingCompany = await _companyContext.Companies.FindAsync(serviceDto.CompanyId.Value);
             if (existingCompany == null)
-                return BadRequest("The company does not exist or Company ID is required.");
-            existingService.CompanyId = service.CompanyId;
+                return BadRequest("The company does not exist.");
+            existingService.CompanyId = serviceDto.CompanyId.Value;
         }
 
-        if (service.WorkerId.HasValue)
+        if (serviceDto.WorkerId.HasValue)
         {
-            var workerExists = await GetWorkerDetails(service.WorkerId.Value);
+            var workerExists = await GetWorkerDetails(serviceDto.WorkerId.Value);
             if (workerExists == null)
-                return BadRequest("Worker ID is required.");
-            existingService.WorkerId = service.WorkerId;
+                return BadRequest("Invalid Worker ID.");
+            existingService.WorkerId = serviceDto.WorkerId.Value;
         }
 
-        if (service.PartsId.HasValue)
+        if (serviceDto.PartsId.HasValue)
         {
-            var partsExists = await _partsContext.Parts.AnyAsync(m => m.Id == service.PartsId.Value);
+            var partsExists = await _partsContext.Parts.AnyAsync(p => p.Id == serviceDto.PartsId.Value);
             if (!partsExists)
-                return BadRequest("The parts does not exist or Parts ID is required.");
-            existingService.PartsId = service.PartsId;
+                return BadRequest("Invalid Parts ID.");
+            existingService.PartsId = serviceDto.PartsId.Value;
         }
 
-        if (service.DateStarted != null)
-            existingService.DateStarted = service.DateStarted;
+        if (serviceDto.DateStarted.HasValue)
+            existingService.DateStarted = DateTime.SpecifyKind(serviceDto.DateStarted.Value, DateTimeKind.Utc);
 
-        if (service.DateFinished != null)
-            existingService.DateFinished = service.DateFinished;
+        if (serviceDto.DateFinished.HasValue)
+            existingService.DateFinished = DateTime.SpecifyKind(serviceDto.DateFinished.Value, DateTimeKind.Utc);
 
-        if (service.MotiveRescheduled != null)
-            existingService.MotiveRescheduled = service.MotiveRescheduled;
+        if (serviceDto.MotiveRescheduled != null)
+            existingService.MotiveRescheduled = serviceDto.MotiveRescheduled;
 
-        if (service.Description != null)
-            existingService.Description = service.Description;
+        if (serviceDto.Description != null)
+            existingService.Description = serviceDto.Description;
 
-        if (service.StatusId.HasValue)
+        if (serviceDto.StatusId.HasValue)
         {
-            var statusExists = await _statusContext.Statuss.AnyAsync(s => s.Id == service.StatusId.Value);
+            var statusExists = await _statusContext.Statuss.AnyAsync(s => s.Id == serviceDto.StatusId.Value);
             if (!statusExists)
-                return BadRequest("The status does not exist or Status ID is required.");
-            existingService.StatusId = service.StatusId;
+                return BadRequest("Invalid Status ID.");
+            existingService.StatusId = serviceDto.StatusId.Value;
         }
 
-        if (service.MachineId != null)
-            existingService.MachineId = service.MachineId;
+        if (serviceDto.MachineId.HasValue)
+            existingService.MachineId = serviceDto.MachineId;
 
-        if (service.ClientSignature != null)
-            existingService.ClientSignature = service.ClientSignature;
-
-        if (service.CreatedDate != null)
-            return BadRequest("CreatedDate cannot be modified.");
-
-        if (service.ModifiedDate != null)
-            return BadRequest("ModifiedDate cannot be modified.");
+        if (serviceDto.ClientSignature != null)
+            existingService.ClientSignature = serviceDto.ClientSignature;
 
         existingService.ModifiedDate = DateTime.UtcNow;
 
@@ -320,12 +381,12 @@ public class ServiceController : ControllerBase
         {
             if (!ServiceExists(id))
                 return NotFound();
-            else
-                throw;
+            throw;
         }
 
         return NoContent();
     }
+
 
     // DELETE: api/service/5
     [HttpDelete("{id}")]

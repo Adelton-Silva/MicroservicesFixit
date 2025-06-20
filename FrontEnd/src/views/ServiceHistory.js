@@ -13,13 +13,17 @@ import {
   Button,
 } from "react-bootstrap";
 
-function ServiceHistory() {
+const getField = (obj, field) => obj?.[field] ?? obj?.[field.charAt(0).toLowerCase() + field.slice(1)];
+
+function ServiceTable() {
   const [services, setServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
   const [machines, setMachines] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [searchText, setSearchText] = useState("");
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -34,7 +38,6 @@ function ServiceHistory() {
 
   useEffect(() => {
     const userToken = localStorage.getItem("userToken");
-
     if (!userToken) {
       console.error("JWT token not found in localStorage! Please log in.");
       setLoading(false);
@@ -46,18 +49,16 @@ function ServiceHistory() {
     };
 
     Promise.all([
-      axios.get(`/service?pageNumber=${currentPage}&pageSize=${pageSize}&status_id=2`, config),
-      axios.get("/users?pageNumber=1&pageSize=100", config), // <- Aqui você pode aumentar o pageSize conforme necessário
+      axios.get(`/service?page=${currentPage}&pageSize=${pageSize}&includeStatusId=3`, config),
+      axios.get("/users?pageNumber=1&pageSize=100", config),
       axios.get("/company?pageNumber=1&pageSize=100", config),
       axios.get("/machine?pageNumber=1&pageSize=100", config),
       axios.get("/status?pageNumber=1&pageSize=100", config)
     ])
       .then(([servicesResponse, usersResponse, clientsResponse, machinesResponse, statusesResponse]) => {
-        const servicesData = Array.isArray(servicesResponse.data.data)
-          ? servicesResponse.data.data
-          : [];
-
-        setTotalPages(servicesResponse.data.totalPages || 1);
+        const data = servicesResponse.data;
+        const servicesData = Array.isArray(getField(data, "Data")) ? getField(data, "Data") : [];
+        setTotalPages(getField(data, "TotalPages") || 1);
 
         const mappedServices = servicesData.map(service => ({
           id: service.id,
@@ -71,10 +72,12 @@ function ServiceHistory() {
           statusId: service.statusId,
           status: typeof service.status === 'string' ? service.status : service.status?.description || 'No Status',
           description: service.description || "",
+          dateStarted: service.dateStarted,
+          dateFinished: service.dateFinished
         }));
 
         setServices(mappedServices);
-        setUsers(usersResponse.data.items || []); // <- Correção principal aqui
+        setUsers(usersResponse.data.items || []);
         setClients(clientsResponse.data.items || []);
         setMachines(machinesResponse.data.items || []);
         setStatuses(statusesResponse.data.items || []);
@@ -82,9 +85,7 @@ function ServiceHistory() {
       .catch((error) => {
         console.error("Error fetching data:", error.response ? error.response.data : error.message);
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, [currentPage]);
 
   const getUsernameById = (userId) => {
@@ -92,16 +93,11 @@ function ServiceHistory() {
     return user ? user.username : 'Unknown Technician';
   };
 
-  const handlePermission = (service) => {
-    console.log("Permissions for:", service);
-  };
-
-  const handleAssign = (service) => {
-    console.log("Assign technician to:", service);
-  };
+  const handlePermission = (service) => console.log("Permissions for:", service);
+  const handleAssign = (service) => console.log("Assign technician to:", service);
 
   const handleEdit = (service) => {
-    if (!service || !service.id) return;
+    if (!service?.id) return;
     setSelectedService(service);
     setShowEditModal(true);
   };
@@ -114,23 +110,19 @@ function ServiceHistory() {
 
   const confirmDelete = async () => {
     if (!serviceToDelete) return;
-
     try {
       const userToken = localStorage.getItem("userToken");
       if (!userToken) {
         setDeleteMessage("User token not found. Please log in again.");
         return;
       }
-
       await axios.delete(`/service/${serviceToDelete.id}`, {
         headers: { Authorization: `Bearer ${userToken}` }
       });
-
       setServices(prev => prev.filter(s => s.id !== serviceToDelete.id));
-      setDeleteMessage(`Service for company "${serviceToDelete.companyName}" deleted successfully.`);
+      setDeleteMessage(`Service for "${serviceToDelete.companyName}" deleted successfully.`);
     } catch (error) {
-      console.error("Error deleting service:", error.response ? error.response.data : error.message);
-      setDeleteMessage(`Failed to delete service for company "${serviceToDelete.companyName}". Please try again.`);
+      setDeleteMessage(`Failed to delete service. Try again.`);
     }
   };
 
@@ -145,15 +137,15 @@ function ServiceHistory() {
       prev.map(service =>
         service.id === id
           ? {
-            ...service,
-            ...updatedData,
-            companyName: clients.find(c => c.id === updatedData.companyId)?.name || service.companyName,
-            machine: machines.find(m => m.id === updatedData.machineId) || service.machine,
-            status: statuses.find(s => s.id === parseInt(updatedData.statusId))?.description || 'No Status',
-            statusId: parseInt(updatedData.statusId) || null,
-            workerId: updatedData.workerId,
-            description: updatedData.description
-          }
+              ...service,
+              ...updatedData,
+              companyName: clients.find(c => c.id === updatedData.companyId)?.name || service.companyName,
+              machine: machines.find(m => m.id === updatedData.machineId) || service.machine,
+              status: statuses.find(s => s.id === parseInt(updatedData.statusId))?.description || 'No Status',
+              statusId: parseInt(updatedData.statusId) || null,
+              workerId: updatedData.workerId,
+              description: updatedData.description
+            }
           : service
       )
     );
@@ -166,8 +158,6 @@ function ServiceHistory() {
     setSelectedService(null);
   };
 
-  const filteredServices = services.filter(service => parseInt(service.statusId) == 2);
-
   return (
     <Container fluid>
       <Row>
@@ -178,6 +168,23 @@ function ServiceHistory() {
               <p className="card-category">Services List</p>
             </Card.Header>
             <Card.Body className="table-full-width table-responsive px-0">
+              {/* Campo de busca */}
+              <div className="p-3 d-flex justify-content-end align-items-center gap-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by client, category or date (yyyy-mm-dd)"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  style={{ maxWidth: '300px' }}
+                />
+                {searchText && (
+                  <Button variant="outline-secondary" onClick={() => setSearchText("")}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+
               {loading ? (
                 <p>Loading...</p>
               ) : (
@@ -192,16 +199,23 @@ function ServiceHistory() {
                         <th>Machine</th>
                         <th>Technician</th>
                         <th>Status</th>
+                        <th>Date Started</th>
+                        <th>Date Finished</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredServices.length === 0 ? (
-                        <tr>
-                          <td colSpan="8" className="text-center">No services found.</td>
-                        </tr>
-                      ) : (
-                        filteredServices.map((service) => (
+                      {services
+                        .filter((service) => {
+                          const lower = searchText.toLowerCase();
+                          return (
+                            !searchText ||
+                            service.companyName?.toLowerCase().includes(lower) ||
+                            service.category?.toLowerCase().includes(lower) ||
+                            (service.dateStarted && service.dateStarted.startsWith(searchText))
+                          );
+                        })
+                        .map((service) => (
                           <tr key={service.id}>
                             <td>{service.id}</td>
                             <td>{service.priority}</td>
@@ -210,6 +224,8 @@ function ServiceHistory() {
                             <td>{service.machine?.type || 'N/A'}</td>
                             <td>{getUsernameById(service.workerId)}</td>
                             <td>{service.status}</td>
+                            <td>{service.dateStarted ? service.dateStarted.split('T')[0] : 'N/A'}</td>
+                            <td>{service.dateFinished ? service.dateFinished.split('T')[0] : 'N/A'}</td>
                             <td>
                               <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                                 <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
@@ -217,8 +233,7 @@ function ServiceHistory() {
                               </div>
                             </td>
                           </tr>
-                        ))
-                      )}
+                        ))}
                     </tbody>
                   </Table>
 
@@ -248,13 +263,7 @@ function ServiceHistory() {
         </Col>
       </Row>
 
-      <Modal
-        show={showDeleteConfirmModal}
-        onHide={cancelDelete}
-        backdrop="static"
-        keyboard={false}
-        centered
-      >
+      <Modal show={showDeleteConfirmModal} onHide={cancelDelete} backdrop="static" keyboard={false} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Deletion</Modal.Title>
         </Modal.Header>
@@ -263,25 +272,18 @@ function ServiceHistory() {
             <p>{deleteMessage}</p>
           ) : (
             <>
-              Are you sure you want to delete the service for company <strong>{serviceToDelete?.companyName}</strong>?
-              <br />
-              This action cannot be undone.
+              Are you sure you want to delete the service for <strong>{serviceToDelete?.companyName}</strong>?
+              <br /> This action cannot be undone.
             </>
           )}
         </Modal.Body>
         <Modal.Footer className={deleteMessage ? "justify-content-center" : ""}>
           {deleteMessage ? (
-            <Button variant="secondary" onClick={cancelDelete}>
-              Close
-            </Button>
+            <Button variant="secondary" onClick={cancelDelete}>Close</Button>
           ) : (
             <>
-              <Button variant="secondary" onClick={cancelDelete}>
-                Cancel
-              </Button>
-              <Button variant="danger" onClick={confirmDelete}>
-                Delete
-              </Button>
+              <Button variant="secondary" onClick={cancelDelete}>Cancel</Button>
+              <Button variant="danger" onClick={confirmDelete}>Delete</Button>
             </>
           )}
         </Modal.Footer>
@@ -299,4 +301,4 @@ function ServiceHistory() {
   );
 }
 
-export default ServiceHistory;
+export default ServiceTable;

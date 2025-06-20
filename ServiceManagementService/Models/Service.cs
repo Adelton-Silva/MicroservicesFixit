@@ -10,9 +10,12 @@ namespace ServiceManagementService.Models // Ensure this namespace is correct
         public int Id { get; set; }
 
         [Column("priority")]
+        [StringLength(10)]
         public string? Priority { get; set; }
 
         [Column("category")]
+        [RegularExpression(@"^[a-zA-Z0-9çãáàéè ]*$", ErrorMessage = "Special characters are not allowed.")]
+        [StringLength(25)]
         public string? Category { get; set; }
 
         [Column("company_id")] // <--- Keep Column attribute for DB mapping
@@ -31,9 +34,11 @@ namespace ServiceManagementService.Models // Ensure this namespace is correct
         public DateTime? DateFinished { get; set; } // <--- RENAME to camelCase
 
         [Column("motive_rescheduled")] // <--- Keep Column attribute for DB mapping
+        [StringLength(150, ErrorMessage = "Motive Reschedule cannot exceed 150 characters.")]
         public string? MotiveRescheduled { get; set; } // <--- RENAME to camelCase
 
         [Column("description")] // <--- Keep Column attribute for DB mapping
+        [StringLength(150, ErrorMessage = "Description cannot exceed 150 characters.")]
         public string? Description { get; set; } // <--- RENAME to camelCase
 
         [Column("status_id")] // <--- Keep Column attribute for DB mapping
@@ -43,6 +48,7 @@ namespace ServiceManagementService.Models // Ensure this namespace is correct
         public int? MachineId { get; set; } // <--- RENAME to camelCase
 
         [Column("client_signature")] // <--- Keep Column attribute for DB mapping
+        [StringLength(150, ErrorMessage = "Client signature cannot exceed 150 characters.")]
         public string? ClientSignature { get; set; } // <--- RENAME to camelCase
 
         [Column("created_date")] // <--- Keep Column attribute for DB mapping
