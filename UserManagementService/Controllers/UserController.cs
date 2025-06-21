@@ -86,6 +86,7 @@ namespace UserManagementService.Controllers
 
         // PATCH: api/users/5
         [HttpPatch("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdate user)
         {
             try
