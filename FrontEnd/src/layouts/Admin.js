@@ -1,29 +1,23 @@
 // src/layouts/Admin.js
 
 // ... (keep existing imports, except the CSS ones)
-import React from "react"; // Keep this
-import { useLocation, Route, Switch } from "react-router-dom"; // Keep this
+import React from "react";
+import { useLocation, Route, Switch } from "react-router-dom";
 
 import AdminNavbar from "components/Navbars/AdminNavbar";
 import Footer from "components/Footer/Footer";
 import Sidebar from "components/Sidebar/Sidebar";
-import FixedPlugin from "components/FixedPlugin/FixedPlugin.js";
+import FixedPlugin from "components/FixedPlugin/FixedPlugin"; // Mantenha esta importação
 
-import routes from "routes.js"; // Keep this
+import routes from "routes.js"; // Mantenha esta importação
 
-import sidebarImage from "assets/img/sidebar-3.jpg"; // Keep this
 
-// REMOVE THESE LINES FROM HERE! They belong in index.js
-// import "bootstrap/dist/css/bootstrap.min.css"; // REMOVE
-// import "./assets/css/animate.min.css";       // REMOVE
-// import "./assets/scss/light-bootstrap-dashboard-react.scss?v=2.0.0"; // REMOVE
-// import "./assets/css/demo.css";              // REMOVE
-// import "@fortawesome/fontawesome-free/css/all.min.css"; // REMOVE
 
 function Admin() {
-  const [image, setImage] = React.useState(sidebarImage);
-  const [color, setColor] = React.useState("black");
-  const [hasImage, setHasImage] = React.useState(true);
+ 
+  const [color, setColor] = React.useState("black"); 
+  
+
   const location = useLocation();
   const mainPanel = React.useRef(null);
   const getRoutes = (routes) => {
@@ -57,7 +51,8 @@ function Admin() {
   return (
     <>
       <div className="wrapper">
-        <Sidebar color={color} image={hasImage ? image : ""} routes={routes} />
+        {/* Passar APENAS 'color' para o Sidebar */}
+        <Sidebar color={color} routes={routes} /> 
         <div className="main-panel" ref={mainPanel}>
           <AdminNavbar />
           <div className="content">
@@ -66,17 +61,11 @@ function Admin() {
           <Footer />
         </div>
       </div>
-      <FixedPlugin
-        hasImage={hasImage}
-        setHasImage={() => setHasImage(!hasImage)}
-        color={color}
-        setColor={(color) => setColor(color)}
-        image={image}
-        setImage={(image) => setImage(image)}
-      />
+      {/* Passar APENAS 'color' e 'setColor' para o FixedPlugin */}
+     
     </>
   );
 }
 
-// ADD THIS LINE AT THE END OF THE FILE!
+// Mantenha esta linha no final do ficheiro
 export default Admin;

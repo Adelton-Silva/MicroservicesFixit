@@ -10,6 +10,7 @@ namespace ServiceManagementService.Models
         public int Id { get; set; }
 
         [Column("title")]
+        [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters.")]
         [Required]
         public string Title { get; set; } = string.Empty;
 

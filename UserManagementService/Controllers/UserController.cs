@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using UserManagementService.Models;
 using UserManagementService.Repositories;
 using Microsoft.AspNetCore.Authorization;
-//using MongoDB.Bson;
 
 namespace UserManagementService.Controllers
 {
@@ -18,13 +17,17 @@ namespace UserManagementService.Controllers
             _repository = repository;
         }
 
+        // GET: api/users?page=1&pageSize=10&search=admin
         [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null)
         {
             try
             {
-                var users = await _repository.GetAllUsersAsync(pageNumber, pageSize);
-                return Ok(users);
+                var result = await _repository.GetUsersPaginatedAsync(page, pageSize, search);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -36,6 +39,7 @@ namespace UserManagementService.Controllers
             }
         }
 
+        // GET: api/users/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
@@ -47,43 +51,75 @@ namespace UserManagementService.Controllers
             return Ok(user);
         }
 
+        // GET: api/users/email?test@gmail.com
+        [HttpGet("email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetUserByEmail([FromQuery] string email)
+        {
+            var user = await _repository.GetUserIdByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+            return Ok(user);
+        }
+
+        // POST: api/users
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
-            // Verificar se o usuário já existe
             var existingUser = await _repository.GetUserByUsernameAsync(user.Username);
+            var existingEmail = await _repository.GetUserIdByEmailAsync(user.Email);
             if (existingUser != null)
             {
                 return Conflict(new { Message = "User already exists." });
             }
+            if (existingEmail != null)
+            {
+                return Conflict(new { Message = "Email already exists." });
+            }
 
-            // Adicionar o usuário, pois ele não existe
             await _repository.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUsers), new { username = user.Username }, user);
+            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
+        // PATCH: api/users/5
         [HttpPatch("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdate user)
         {
-            await _repository.UpdateUserByIdAsync(id, user);
-            return Ok("User updated successfully.");
+            try
+            {
+                await _repository.UpdateUserByIdAsync(id, user);
+                return Ok("User updated successfully.");
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Failed to update user.", Details = ex.Message });
+            }
         }
 
-
+        // DELETE: api/users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            // Verificar se o usuário existe
             var existingUser = await _repository.GetUserByIdAsync(id);
             if (existingUser == null)
             {
                 return NotFound(new { Message = "User not found." });
             }
 
-            // Deletar o usuário
             await _repository.DeleteUserAsync(id);
-            return Ok("User deleted successfully.");  // Retorna sucesso
+            return Ok("User deleted successfully.");
         }
-
     }
 }

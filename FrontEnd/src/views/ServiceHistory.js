@@ -49,7 +49,7 @@ function ServiceTable() {
     };
 
     Promise.all([
-      axios.get(`/service?page=${currentPage}&pageSize=${pageSize}&excludeStatusId=3`, config),
+      axios.get(`/service?page=${currentPage}&pageSize=${pageSize}&includeStatusId=3`, config),
       axios.get("/users?pageNumber=1&pageSize=100", config),
       axios.get("/company?pageNumber=1&pageSize=100", config),
       axios.get("/machine?pageNumber=1&pageSize=100", config),
@@ -228,8 +228,6 @@ function ServiceTable() {
                             <td>{service.dateFinished ? service.dateFinished.split('T')[0] : 'N/A'}</td>
                             <td>
                               <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                                <FaKey title="Permissions" style={{ cursor: 'pointer' }} onClick={() => handlePermission(service)} />
-                                <FaUserCog title="Assign Technician" style={{ cursor: 'pointer' }} onClick={() => handleAssign(service)} />
                                 <FaPen title="Edit" style={{ cursor: 'pointer' }} onClick={() => handleEdit(service)} />
                                 <FaTrash title="Delete" style={{ color: 'red', cursor: 'pointer' }} onClick={() => handleDelete(service)} />
                               </div>

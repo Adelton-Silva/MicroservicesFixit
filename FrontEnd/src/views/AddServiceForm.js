@@ -7,127 +7,153 @@ import {
   Container,
   Row,
   Col,
+  Modal
 } from "react-bootstrap";
-// import '../assets/css/app.css'; // Assumindo que o seu CSS está aqui e é utilizado
 
 function AddServiceForm() {
-  // Estado para armazenar os dados do formulário
   const [formData, setFormData] = useState({
-    clientId: "",     // Mapeia para o ID da empresa (company_id)
-    priority: "",     // Prioridade do serviço
-    category: "",     // Categoria do serviço (manutenção preventiva/corretiva)
-    machine: "",      // Mapeia para o ID da peça/máquina (parts_id)
-    workerId: "",     // Mapeia para o ID do técnico responsável (worker_id)
-    observation: "",  // Observações do serviço
+    clientId: "",
+    priority: "",
+    category: "",
+    machine: "",
+    workerId: "",
+    observation: "",
+    dateStarted: "",
+    dateFinished: "",
   });
 
-  // Estados para armazenar os dados das dropdowns
-  const [users, setUsers] = useState([]); // Adicionado: Estado para utilizadores/técnicos
+  const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
-  const priorities = ["Urgent", "Medium", "Low"]; // Opções de prioridade fixas
-  const categories = ["Manutenção Preventiva", "Manutenção Corretiva"]; // Opções de categoria fixas
+  const priorities = ["Urgent", "Medium", "Low", "High"];
+  const categories = ["Preventive maintenance", "Corrective maintenance"];
   const [machines, setMachines] = useState([]);
 
-  // Estados para controlo da UI (carregamento e status de submissão)
   const [loading, setLoading] = useState(true);
-  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success', 'error', null
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackModalTitle, setFeedbackModalTitle] = useState("");
+  const [feedbackModalMessage, setFeedbackModalMessage] = useState("");
+  const [feedbackModalVariant, setFeedbackModalVariant] = useState("success");
 
-  // Efeito para buscar os dados iniciais das dropdowns ao carregar o componente
   useEffect(() => {
-    const userToken = localStorage.getItem("userToken"); // Obter o token JWT do localStorage
+    const userToken = localStorage.getItem("userToken");
 
     if (!userToken) {
-      console.error("Token JWT não encontrado no localStorage! Por favor, faça login.");
-      setLoading(false); // Parar o carregamento
-      setSubmissionStatus('error'); // Usar submissionStatus para erro de autenticação
-      return; // Sair da função se não houver token
+      console.error("JWT token not found in localStorage! Please log in.");
+      setLoading(false);
+      setFeedbackModalTitle("Authentication Error");
+      setFeedbackModalMessage("User token not found. Please log in again.");
+      setFeedbackModalVariant("danger");
+      setShowFeedbackModal(true);
+      return;
     }
 
-    // Configuração dos cabeçalhos de autorização para todas as requisições
     const config = {
       headers: { Authorization: `Bearer ${userToken}` },
     };
 
-    // Definição das chamadas da API para buscar os dados das dropdowns
-    // Utilizadores: Aponta para http://localhost:3000/api/users (o que funciona para si)
     const fetchUsers = axios.get("/users?pageNumber=1&pageSize=10", config);
-    // Clientes: Aponta para http://localhost:3000/api/company (o que funciona para si)
     const fetchClients = axios.get("/company?pageNumber=1&pageSize=10", config);
-    // Máquinas: Aponta para http://localhost:3000/api/machine (usando o endpoint de máquinas)
     const fetchMachines = axios.get("/machine?pageNumber=1&pageSize=10", config);
 
-
-    // Executar todas as chamadas API em paralelo
     Promise.all([fetchUsers, fetchClients, fetchMachines])
       .then(([usersResponse, clientsResponse, machinesResponse]) => {
-        // --- LOGS PARA DEPURAR OS DADOS RECEBIDOS (manter para depuração inicial) ---
-        console.log("Dados de Utilizadores recebidos:", usersResponse.data);
-        console.log("Dados de Clientes (Company) recebidos:", clientsResponse.data);
-        console.log("Dados de Máquinas (Machine) recebidos:", machinesResponse.data);
+        console.log("Users data received:", usersResponse.data);
+        console.log("Clients (Company) data received:", clientsResponse.data);
+        console.log("Machines (Machine) data received:", machinesResponse.data);
 
-        // Atribuir os dados aos estados conforme a sua estrutura de resposta JSON
-        setUsers(usersResponse.data || []); // Utilizadores: array direto
-        setClients(clientsResponse.data.data || []); // Clientes: aninhado em .data.data
-        setMachines(machinesResponse.data.data || []); // Máquinas: aninhado em .data.data
+        setUsers(usersResponse.data.items || []);
+        setClients(clientsResponse.data || []);
+        setMachines(machinesResponse.data || []);
       })
       .catch((error) => {
-        // Lidar com erros durante a busca de dados
-        console.error("Erro ao buscar dados do formulário:", error.response ? error.response.data : error.message);
-        setSubmissionStatus('error'); // Definir status de erro para exibição ao utilizador
+        console.error("Error fetching form data:", error.response ? error.response.data : error.message);
+        setFeedbackModalTitle("Loading Error");
+        setFeedbackModalMessage("Failed to load form data. Please try again later.");
+        setFeedbackModalVariant("danger");
+        setShowFeedbackModal(true);
       })
       .finally(() => {
-        setLoading(false); // Parar o estado de carregamento, independentemente do sucesso ou falha
+        setLoading(false);
       });
-  }, []); // O array de dependências vazio significa que este efeito corre apenas uma vez ao montar o componente
+  }, []);
 
-  // Função para lidar com a mudança nos campos do formulário
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value, // Atualiza o valor do campo correspondente
+      [name]: value,
     }));
   };
 
-  // Função para lidar com a submissão do formulário
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevenir o comportamento padrão de recarregar a página
-    setSubmissionStatus(null); // Resetar o status da submissão
+    e.preventDefault();
+
+    setShowFeedbackModal(false);
+    setFeedbackModalTitle("");
+    setFeedbackModalMessage("");
+    setFeedbackModalVariant("success");
 
     const userToken = localStorage.getItem("userToken");
     if (!userToken) {
-      console.error("Token JWT não encontrado!");
-      setSubmissionStatus('error');
+      console.error("JWT token not found!");
+      setFeedbackModalTitle("Authentication Error");
+      setFeedbackModalMessage("User token not found. Please log in again.");
+      setFeedbackModalVariant("danger");
+      setShowFeedbackModal(true);
+      return;
+    }
+
+    // Validação de datas
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = formData.dateStarted ? new Date(formData.dateStarted) : null;
+    const endDate = formData.dateFinished ? new Date(formData.dateFinished) : null;
+
+    if (startDate && startDate < today) {
+      setFeedbackModalTitle("Validation Error");
+      setFeedbackModalMessage("Start date must be today or in the future.");
+      setFeedbackModalVariant("danger");
+      setShowFeedbackModal(true);
+      return;
+    }
+
+    if (startDate && endDate && endDate < startDate) {
+      setFeedbackModalTitle("Validation Error");
+      setFeedbackModalMessage("End date must be the same or later than the start date.");
+      setFeedbackModalVariant("danger");
+      setShowFeedbackModal(true);
       return;
     }
 
     try {
-      // Mapear os dados do formulário para o formato da payload que o backend espera
       const servicePayload = {
-        companyId: formData.clientId === "" ? null : parseInt(formData.clientId),
+        company_id: formData.clientId === "" ? null : parseInt(formData.clientId),
         priority: formData.priority,
         category: formData.category,
         PartsId: null,
-        workerId: formData.workerId === "" ? null : parseInt(formData.workerId),
-        machineId: formData.machine === "" ? null : parseInt(formData.machine),
-        date_started: new Date().toISOString().split('T')[0],
-        statusId: 1,
+        worker_id: formData.workerId === "" ? null : parseInt(formData.workerId),
+        machine_id: formData.machine === "" ? null : parseInt(formData.machine),
+        status_id: 1,
         description: formData.observation,
+        date_started: formData.dateStarted ? new Date(formData.dateStarted).toISOString() : null,
+        date_finished: formData.dateFinished ? new Date(formData.dateFinished).toISOString() : null,
       };
 
-      console.log("Payload a ser submetido:", servicePayload);
+      console.log("Payload to be submitted:", servicePayload);
 
-      // Enviar a requisição POST para criar o serviço para o API Gateway
-      // CORREÇÃO: Alterado o endpoint para http://localhost:8088/api/service
       const response = await axios.post(
-        "/service", // Endpoint correto para o API Gateway
+        "/service",
         servicePayload,
         { headers: { Authorization: `Bearer ${userToken}` } }
       );
 
-      console.log("Serviço criado com sucesso:", response.data);
-      setSubmissionStatus('success'); // Definir status de sucesso
-      // Resetar o formulário após a submissão bem-sucedida
+      console.log("Service created successfully:", response.data);
+      setFeedbackModalTitle("Success");
+      setFeedbackModalMessage("Service added successfully!");
+      setFeedbackModalVariant("success");
+      setShowFeedbackModal(true);
+
       setFormData({
         clientId: "",
         priority: "",
@@ -135,22 +161,29 @@ function AddServiceForm() {
         machine: "",
         workerId: "",
         observation: "",
+        dateStarted: "",
+        dateFinished: "",
       });
-      // Pode adicionar lógica aqui para atualizar uma lista de serviços, navegar, etc.
 
     } catch (error) {
-      // Lidar com erros durante a submissão do formulário
-      console.error("Erro ao criar serviço:", error.response ? error.response.data : error.message);
-      setSubmissionStatus('error'); // Definir status de erro
+      console.error("Error creating service:", error.response ? error.response.data : error.message);
+      setFeedbackModalTitle("Error");
+      setFeedbackModalMessage("Failed to add service. Please try again.");
+      setFeedbackModalVariant("danger");
+      setShowFeedbackModal(true);
     }
   };
 
-  // Exibir mensagem de carregamento enquanto os dados das dropdowns são buscados
+  const handleCloseFeedbackModal = () => {
+    setShowFeedbackModal(false);
+    setFeedbackModalTitle("");
+    setFeedbackModalMessage("");
+  };
+
   if (loading) {
-    return <p>A carregar formulário...</p>;
+    return <p>Loading form...</p>;
   }
 
-  // Renderizar o formulário
   return (
     <Container fluid>
       <Row>
@@ -161,17 +194,9 @@ function AddServiceForm() {
               <p className="card-category">Add a new service</p>
             </Card.Header>
             <Card.Body>
-              {/* Exibir mensagem de sucesso ou erro na submissão */}
-              {submissionStatus === 'success' && (
-                <div className="alert alert-success">Service added successfully</div>
-              )}
-              {submissionStatus === 'error' && (
-                <div className="alert alert-danger">Error adding service</div>
-              )}
               <Form onSubmit={handleSubmit}>
-                <Row> {/* Primeira linha para duas colunas */}
+                <Row>
                   <Col md="6">
-                    {/* Dropdown de Clientes */}
                     <Form.Group className="mb-3">
                       <label>Client</label>
                       <Form.Control
@@ -185,7 +210,7 @@ function AddServiceForm() {
                         {clients.length > 0 ? (
                           clients.map((client) => (
                             <option key={client.id} value={client.id}>
-                              {client.name} {/* Exibe o nome da empresa */}
+                              {client.name}
                             </option>
                           ))
                         ) : (
@@ -195,7 +220,6 @@ function AddServiceForm() {
                     </Form.Group>
                   </Col>
                   <Col md="6">
-                    {/* Dropdown de Prioridade */}
                     <Form.Group className="mb-3">
                       <label>Priority</label>
                       <Form.Control
@@ -216,9 +240,8 @@ function AddServiceForm() {
                   </Col>
                 </Row>
 
-                <Row className="mt-3"> {/* Segunda linha para mais colunas */}
+                <Row className="mt-3">
                   <Col md="6">
-                    {/* Dropdown de Categoria */}
                     <Form.Group className="mb-3">
                       <label>Category</label>
                       <Form.Control
@@ -238,7 +261,6 @@ function AddServiceForm() {
                     </Form.Group>
                   </Col>
                   <Col md="6">
-                    {/* Dropdown de Máquinas */}
                     <Form.Group className="mb-3">
                       <label>Machine</label>
                       <Form.Control
@@ -262,11 +284,10 @@ function AddServiceForm() {
                   </Col>
                 </Row>
 
-                <Row className="mt-3"> {/* Terceira linha para a coluna de técnicos */}
+                <Row className="mt-3">
                   <Col md="6">
-                    {/* Dropdown de Técnicos Responsáveis */}
                     <Form.Group className="mb-3">
-                      <label>Responsable Technician</label>
+                      <label>Responsible Technician</label>
                       <Form.Control
                         as="select"
                         name="workerId"
@@ -288,7 +309,34 @@ function AddServiceForm() {
                   </Col>
                 </Row>
 
-                <Row className="mt-3"> {/* Linha para observação */}
+                <Row className="mt-3">
+                  <Col md="6">
+                    <Form.Group className="mb-3">
+                      <label>Date Started</label>
+                      <Form.Control
+                        type="date"
+                        name="dateStarted"
+                        value={formData.dateStarted}
+                        onChange={handleChange}
+                        min={new Date().toISOString().split("T")[0]} // Data mínima = hoje
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md="6">
+                    <Form.Group className="mb-3">
+                      <label>Date Finished</label>
+                      <Form.Control
+                        type="date"
+                        name="dateFinished"
+                        value={formData.dateFinished}
+                        onChange={handleChange}
+                        min={formData.dateStarted || new Date().toISOString().split("T")[0]} // >= dateStarted ou hoje
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row className="mt-3">
                   <Col md="12">
                     <Form.Group className="mb-3">
                       <label>Description</label>
@@ -316,6 +364,20 @@ function AddServiceForm() {
           </Card>
         </Col>
       </Row>
+
+      <Modal show={showFeedbackModal} onHide={handleCloseFeedbackModal} centered>
+        <Modal.Header closeButton className={feedbackModalVariant === "danger" ? "bg-danger text-white" : "bg-success text-white"}>
+          <Modal.Title>{feedbackModalTitle}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{feedbackModalMessage}</p>
+        </Modal.Body>
+        <Modal.Footer className="justify-content-center">
+          <Button variant="secondary" onClick={handleCloseFeedbackModal}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }
