@@ -22,5 +22,12 @@ namespace UserManagementService.Models
         [BsonElement("email")]
         [RegularExpression(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$", ErrorMessage = "Email is not valid")]
         public string Email { get; set; } = null!;
+
+        // 🔐 Campos para recuperação de senha
+        [BsonElement("resetToken")]
+        public string? ResetToken { get; set; }
+
+        [BsonElement("resetTokenExpiration")]
+        public DateTime? ResetTokenExpiration { get; set; }
     }
 }

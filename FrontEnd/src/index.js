@@ -9,6 +9,7 @@ import AdminLayout from "layouts/Admin.js";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./routes/PrivateRoute";
 import RedirectFromRoot from "components/RedirectFromRoot";
+import ForgotPasswordView from "views/ForgotPasswordView";
 
 import "./assets/css/animate.min.css";
 import "./assets/scss/light-bootstrap-dashboard-react.scss?v=2.0.0";
@@ -29,6 +30,7 @@ const App = () => {
     <AuthProvider navigate={history.push}>
       <Switch>
         <Route exact path="/login" component={Login} />
+        <Route exact path="/forgot-password" component={ForgotPasswordView} />
         <PrivateRoute path="/admin" component={AdminLayout} />
         <Route exact path="/" component={RedirectFromRoot} />
       </Switch>

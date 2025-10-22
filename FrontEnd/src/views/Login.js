@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import '../assets/css/loginView.css';
+import { Link } from 'react-router-dom';
 
 const LoginView = () => {
   const history = useHistory();
@@ -62,7 +63,7 @@ const LoginView = () => {
       if (err.response && err.response.data && err.response.data.message) {
         setGeneralError(err.response.data.message);
       } else {
-        setGeneralError('Unexpected error. Please try again.');
+        setGeneralError('invalid credencials. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -109,7 +110,7 @@ const LoginView = () => {
             {passwordError && <p className="error-message field-error">{passwordError}</p>}
           </div>
 
-          <a href="#" className="forgot-password">Forgot password?</a>
+          <Link to="/forgot-password" className="forgot-password">Forgot password?</Link>
 
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? 'Logging In...' : 'Continue'}

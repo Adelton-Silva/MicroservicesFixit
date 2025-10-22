@@ -7,7 +7,7 @@
         { "Host": "auth_service", "Port": 5003 }
       ],
       "UpstreamPathTemplate": "/auth/login",
-      "UpstreamHttpMethod": [ "POST" ] 
+      "UpstreamHttpMethod": [ "POST" ]
     },
     {
       "DownstreamPathTemplate": "/api/auth/login",
@@ -15,14 +15,14 @@
       "DownstreamHostAndPorts": [
         { "Host": "auth_service", "Port": 5003 }
       ],
-       "UpstreamPathTemplate": "/auth/login", 
-      "UpstreamHttpMethod": [ "OPTIONS" ], 
-      "AddHeadersToResponse": { 
-        "Access-Control-Allow-Origin": "http://localhost:3000", 
-        "Access-Control-Allow-Methods": "POST, GET, PATCH, DELETE, OPTIONS", 
-        "Access-Control-Allow-Headers": "Content-Type, Authorization", 
-        "Access-Control-Max-Age": "86400" 
-        }
+      "UpstreamPathTemplate": "/auth/login",
+      "UpstreamHttpMethod": [ "OPTIONS" ],
+      "AddHeadersToResponse": {
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Methods": "POST, GET, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400"
+      }
     },
     {
       "DownstreamPathTemplate": "/api/users/email",
@@ -40,7 +40,7 @@
         { "Host": "user_management_service", "Port": 5001 }
       ],
       "UpstreamPathTemplate": "/users/{everything}",
-      "UpstreamHttpMethod": [ "GET", "PATCH",  "DELETE" , "OPTIONS" ],
+      "UpstreamHttpMethod": [ "GET", "PATCH", "DELETE", "OPTIONS" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -62,7 +62,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/appointments/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -75,7 +75,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/company/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -88,7 +88,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/machine_models/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -101,7 +101,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/machine/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -114,7 +114,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/machinetype/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -127,7 +127,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/parts/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -140,7 +140,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/review/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -153,7 +153,7 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/status/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []
@@ -166,11 +166,25 @@
         { "Host": "service_management_service", "Port": 5002 }
       ],
       "UpstreamPathTemplate": "/service/{everything}",
-      "UpstreamHttpMethod": [ "POST", "GET", "PATCH",  "DELETE" ],
-      "AuthenticationOptions": {
-        "AuthenticationProviderKey": "Bearer",
-        "AllowedScopes": []
-      }
+      "UpstreamHttpMethod": [ "POST", "GET", "PATCH", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/account/forgot-password",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "user_management_service", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/account/forgot-password",
+      "UpstreamHttpMethod": [ "POST", "OPTIONS" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/account/reset-password",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "user_management_service", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/account/reset-password",
+      "UpstreamHttpMethod": [ "POST", "OPTIONS" ]
     }
   ],
   "GlobalConfiguration": {

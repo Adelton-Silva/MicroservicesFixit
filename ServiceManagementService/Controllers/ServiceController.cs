@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace ServiceManagementService.Controllers;
 
-[Authorize]
+//[Authorize]
 [ApiController]
 [Route("api/service")]
 public class ServiceController : ControllerBase
@@ -80,7 +80,7 @@ public class ServiceController : ControllerBase
         [FromQuery] int? excludeStatusId,
         [FromQuery] int? includeStatusId,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10
+        [FromQuery] int pageSize = 31
     )
     {
         if (page <= 0 || pageSize <= 0)
