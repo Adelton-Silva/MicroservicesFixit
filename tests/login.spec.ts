@@ -1,34 +1,8 @@
 import { test, expect } from '@playwright/test';
-
-let stopExecution = false; // Flag global para parar execução após falha crítica
-
-// Função para definir testes críticos
-const criticalTest = (name: string, fn: ({ page }: { page: any }) => Promise<void>) => {
-  test(name, async ({ page }) => {
-    if (stopExecution) test.skip(); // ignora se já houve falha crítica
-    try {
-      await fn({ page });
-    } catch (error) {
-      stopExecution = true; // marca que um teste crítico falhou
-      console.error(` Teste crítico "${name}" falhou! Todos os próximos testes serão ignorados.`);
-      throw error; // mantém a falha visível no relatório
-    }
-  });
-};
-
-// Função para testes não críticos
-const nonCriticalTest = (name: string, fn: ({ page }: { page: any }) => Promise<void>) => {
-  test(name, async ({ page }) => {
-    if (stopExecution) {
-      console.warn(` Testes críticos falharam — "${name}" será ignorado.`);
-      test.skip();
-    }
-    await fn({ page });
-  });
-};
+import { criticalTest, nonCriticalTest } from './criticalAndnonCriticalTest.spec';
 
 // Agrupando tudo
-test.describe.serial('FixIt App - Testes Automáticos', () => {
+test.describe.serial('Testes Automáticos Login', () => {
 
   //  Teste crítico: Recuperação de password (falha esperada)
   criticalTest('Deve mostrar mensagem de erro com "Failed to send reset link"', async ({ page }) => {
@@ -68,7 +42,7 @@ test.describe.serial('FixIt App - Testes Automáticos', () => {
   });
 
   //  Teste crítico: Login inválido
-  criticalTest('Deve mostrar mensagem de erro com username ou password inválidos', async ({ page }) => {
+  criticalTest('Deve mostrar mensagem de erro com invalid credencials. Please try again.', async ({ page }) => {
 
     await page.goto('http://localhost:3000/login');
 
@@ -81,7 +55,7 @@ test.describe.serial('FixIt App - Testes Automáticos', () => {
 
     const errorMessage = page.locator('.error-message');
     await expect(errorMessage).toBeVisible();
-    await expect(errorMessage).toContainText(/invalid credencials|Login failed/i);
+    await expect(errorMessage).toContainText(/invalid credencials. Please try again.|Login failed/i);
   });
 
   //  Teste crítico: Login válido
