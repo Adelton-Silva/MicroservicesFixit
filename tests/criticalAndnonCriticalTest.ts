@@ -1,28 +1,41 @@
 import { test, Page } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 
-let stopExecution = false;
+const STOP_FILE = path.join(__dirname, '.stopExecution');
 
-// Permite que outros ficheiros vejam o estado
-export const shouldStop = () => stopExecution;
+// Retorna se devemos parar os testes
+export function shouldStop(): boolean {
+  return fs.existsSync(STOP_FILE);
+}
 
-export const criticalTest = (name: string, fn: (args: { page: Page }) => Promise<void>) => {
+// Limpa o estado de stopExecution (para iniciar novos testes)
+export function clearStop() {
+  if (fs.existsSync(STOP_FILE)) fs.unlinkSync(STOP_FILE);
+}
+
+export function criticalTest(
+  name: string,
+  fn: ({ page }: { page: Page }) => Promise<void>
+) {
   test(name, async ({ page }) => {
-    if (stopExecution) test.skip();
+    if (shouldStop()) test.skip(true, 'Teste crítico anterior falhou — ignorando.');
 
     try {
       await fn({ page });
     } catch (err) {
-      stopExecution = true;
-      console.error(` Teste crítico falhou: ${name}`);
-      throw err;
+      fs.writeFileSync(STOP_FILE, '1'); // marca que um crítico falhou
+      throw err; // mantém falha visível no relatório
     }
   });
-};
+}
 
-export const nonCriticalTest = (name: string, fn : (args: { page: Page }) => Promise<void>) => {
+export function nonCriticalTest(
+  name: string,
+  fn: ({ page }: { page: Page }) => Promise<void>
+) {
   test(name, async ({ page }) => {
-    if (stopExecution) test.skip();
+    if (shouldStop()) test.skip(true, 'Teste crítico falhou — ignorando não críticos.');
     await fn({ page });
   });
-};
-
+}
