@@ -12,7 +12,7 @@ test.describe.serial('Testes Automáticos Recuperação de Password', () => {
     await page.click('text=Forgot password');
     await expect(page).toHaveURL('http://localhost:3000/forgot-password');
 
-    await page.fill('#email', 'adeltonair@gmail.com');
+    await page.fill('#email', 'teste1@recuperar.com');
     await page.click('button[type="submit"]');
 
     const errorMessage = page.locator('.error-message');
