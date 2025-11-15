@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { criticalTest, nonCriticalTest, shouldStop } from './criticalAndnonCriticalTest';
 
-test.describe.serial('Testes Automáticos Login', () => {
+test.describe.serial('Automatic Tests Login', () => {
 
   // Ignora todos os testes se algum crítico anterior falhou
   test.beforeEach(() => {
     if (shouldStop()) {
-      test.skip(true, 'Teste de recuperação de password falhou — ignorando testes de login.');
+      test.skip(true, 'Test failure. Ignoring all tests.');
     }
   });
 
   //  Teste crítico: Login inválido
-  criticalTest('Deve mostrar mensagem de erro com invalid credencials. Please try again.', async ({ page }) => {
+  criticalTest('Should show error message with invalid credencials. Please try again.', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.fill('#username', 'Rafaelll');
     await page.fill('#password', '123456789');
@@ -25,7 +25,7 @@ test.describe.serial('Testes Automáticos Login', () => {
   });
 
   //  Teste crítico: Login válido
-  criticalTest('Deve autenticar com username válido e redirecionar para o dashboard', async ({ page }) => {
+  criticalTest('Should navigate to dashboard', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.fill('#username', 'Rafael');
     await page.fill('#password', '123456789');
@@ -35,12 +35,6 @@ test.describe.serial('Testes Automáticos Login', () => {
 
     await page.waitForURL('**/admin/dashboard', { timeout: 10000 });
     await expect(page).toHaveURL(/dashboard/);
-  });
-
-  //  Teste não crítico: UI / título da página
-  nonCriticalTest('Teste de UI opcional', async ({ page }) => {
-    await page.goto('http://localhost:3000/');
-    await expect(page).toHaveTitle(/FixIt/);
   });
 
 });

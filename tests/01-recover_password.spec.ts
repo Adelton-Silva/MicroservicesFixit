@@ -4,10 +4,10 @@ import { criticalTest, clearStop } from './criticalAndnonCriticalTest';
 // Limpa stopExecution antes de começar a suíte
 clearStop();
 
-test.describe.serial('Testes Automáticos Recuperação de Password', () => {
+test.describe.serial('Automatic Tests Recover Password', () => {
 
   //  Teste crítico: Recuperação de password (falha esperada)
-  criticalTest('Deve mostrar mensagem de erro com "Failed to send reset link"', async ({ page }) => {
+  criticalTest('Should show error message with "Failed to send reset link"', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.click('text=Forgot password');
     await expect(page).toHaveURL('http://localhost:3000/forgot-password');
@@ -21,7 +21,7 @@ test.describe.serial('Testes Automáticos Recuperação de Password', () => {
   });
 
   //  Teste crítico: Recuperação de password (sucesso)
-  criticalTest('Deve mostrar mensagem de sucesso com "Check your email for reset link"', async ({ page }) => {
+  criticalTest('Should show success message with "Check your email for reset link"', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.click('text=Forgot password');
     await expect(page).toHaveURL('http://localhost:3000/forgot-password');
