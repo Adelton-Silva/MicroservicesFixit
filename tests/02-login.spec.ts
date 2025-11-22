@@ -3,14 +3,14 @@ import { criticalTest, nonCriticalTest, shouldStop } from './criticalAndnonCriti
 
 test.describe.serial('Automatic Tests Login', () => {
 
-  // Ignora todos os testes se algum crítico anterior falhou
+  // Ignor all tests if a critical test has failed
   test.beforeEach(() => {
     if (shouldStop()) {
       test.skip(true, 'Test failure. Ignoring all tests.');
     }
   });
 
-  //  Teste crítico: Login inválido
+  //  criticalTest: failed login
   criticalTest('Should show error message with invalid credencials. Please try again.', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.fill('#username', 'Rafaelll');
@@ -24,7 +24,7 @@ test.describe.serial('Automatic Tests Login', () => {
     await expect(errorMessage).toContainText(/invalid credencials. Please try again.|Login failed/i);
   });
 
-  //  Teste crítico: Login válido
+  //  criticalTest: success login
   criticalTest('Should navigate to dashboard', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     await page.fill('#username', 'Rafael');
