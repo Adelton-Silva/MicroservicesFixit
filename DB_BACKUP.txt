@@ -1,0 +1,52 @@
+INSERT INTO public.appointments (title,client_id,machine_id,status_id,date_appointment,date_conclusion,created_date,modified_date) VALUES
+	 ('Lathe Checkup',1,1,1,'2025-06-15',NULL,'2025-06-21 12:04:59.999505','2025-06-21 12:04:59.999505'),
+	 ('CNC Emergency',2,2,2,'2025-06-10',NULL,'2025-06-21 12:04:59.999505','2025-06-21 12:04:59.999505');
+
+INSERT INTO public.companies ("name",nif,address,email,phone,postal_code,location_reference,"isActive",created_date,modified_date) VALUES
+	 ('TechMech Ltd.',123456789,'123 Mechanic Way','contact@techmech.com','555-1234','1000-001','Zone A',1,'2025-06-21 12:04:08.151103','2025-06-21 12:04:08.151103'),
+	 ('Industrias Nova',987654321,'456 Industrial Blvd','info@indnova.com','555-9876','2000-002','Zone B',1,'2025-06-21 12:04:08.151103','2025-06-21 12:04:08.151103');
+
+INSERT INTO public.machine_mods (model,"Machine_type_id",created_date,modified_date) VALUES
+	 ('Model A1',1,'2025-06-21 12:04:26.345115','2025-06-21 12:04:26.345115'),
+	 ('Model C2',2,'2025-06-21 12:04:26.345115','2025-06-21 12:04:26.345115');
+	 
+	 INSERT INTO public.machine_types (description,"isActive",created_date,modified_date) VALUES
+	 ('Lathe',1,'2025-06-21 12:04:16.653053','2025-06-21 12:04:16.653053'),
+	 ('CNC',1,'2025-06-21 12:04:16.653053','2025-06-21 12:04:16.653053');
+	 
+	 INSERT INTO public.machines ("Company_id",serial_number,number_hours,last_maintenance_date,"isActive",created_date,modified_date,brand,"type",model) VALUES
+	 (1,'SN123LATHE',1500,'2025-05-10 00:00:00',1,'2025-06-21 12:04:35.111411','2025-06-21 12:04:35.111411','MecaBrand','Lathe','Model A1'),
+	 (2,'SN456CNC',2000,'2025-04-28 00:00:00',1,'2025-06-21 12:04:35.111411','2025-06-21 12:04:35.111411','AutoTech','CNC','Model C2');
+
+INSERT INTO public.parts ("name",description) VALUES
+	 ('Bearing','High-load bearing component'),
+	 ('Belt','Drive belt for motor');
+
+
+INSERT INTO public.services (company_id,worker_id,parts_id,date_started,date_finished,motive_rescheduled,client_signature,created_date,modified_date,status_id,priority,category,machine_id,description) VALUES
+	 (1,1,NULL,'2025-06-27','2025-06-27','pea atrasado',NULL,'2025-06-22 09:52:26.253279','2025-06-23 14:20:36.392089',1,'Medium','Preventive maintenance',1,'dfg'),
+	 (1,1,NULL,'2025-06-30','2025-06-30','Técnico vai faltar',NULL,'2025-06-22 09:53:09.286216','2025-10-17 18:49:37.403103',1,'Urgent','Corrective maintenance',2,'as'),
+	 (2,1,NULL,'2025-06-21','2025-06-21',NULL,NULL,'2025-06-21 11:33:53.563613','2025-06-21 11:34:14.937416',3,'Urgent','Corrective maintenance',1,'df'),
+	 (1,2,NULL,'2025-06-23','2025-06-23',NULL,NULL,'2025-06-22 09:52:53.748184','2025-06-22 09:52:53.748184',1,'Urgent','Corrective maintenance',1,'sda'),
+	 (1,1,NULL,'2025-10-19','2025-10-19',NULL,NULL,'2025-10-19 19:35:17.674011','2025-10-19 19:35:17.674011',1,'Urgent','Preventive maintenance',1,'df'),
+	 (1,1,NULL,NULL,NULL,NULL,NULL,'2025-10-19 19:35:37.987274','2025-10-19 19:35:37.987274',1,'Urgent','Preventive maintenance',1,''),
+	 (1,1,NULL,'2025-10-19','2025-10-19',NULL,NULL,'2025-10-19 19:32:35.770211','2025-10-19 20:42:43.379774',2,'Urgent','Preventive maintenance',1,'sdfg'),
+	 (1,2,NULL,NULL,NULL,NULL,NULL,'2025-10-22 18:50:57.907252','2025-10-22 18:50:57.907252',1,'Urgent','Preventive maintenance',1,''),
+	 (2,2,NULL,'2025-10-24','2025-10-24',NULL,NULL,'2025-10-24 19:23:23.194379','2025-10-24 19:23:23.194379',1,'Medium','Preventive maintenance',1,'fg'),
+	 (1,1,NULL,'2025-10-30','2025-10-25',NULL,NULL,'2025-06-25 19:00:39.992071','2025-10-25 14:10:57.130644',1,'Urgent','Preventive maintenance',1,'sss');
+INSERT INTO public.services (company_id,worker_id,parts_id,date_started,date_finished,motive_rescheduled,client_signature,created_date,modified_date,status_id,priority,category,machine_id,description) VALUES
+	 (2,1,NULL,'2025-06-22','2025-06-22',NULL,NULL,'2025-06-22 09:54:43.74576','2025-06-23 22:14:53.477782',1,'Urgent','Corrective maintenance',1,'aa'),
+	 (2,2,NULL,'2025-06-28','2025-06-28','teste',NULL,'2025-06-22 09:54:28.790044','2025-06-23 22:15:34.55915',1,'Medium','Preventive maintenance',1,'assa'),
+	 (1,1,NULL,'2025-06-24','2025-06-24',NULL,NULL,'2025-06-22 17:49:31.481986','2025-06-24 14:14:23.986028',1,'Medium','Preventive maintenance',1,'asd'),
+	 (2,1,NULL,'2025-06-26','2025-06-26',NULL,NULL,'2025-06-22 09:50:18.512033','2025-06-25 17:48:41.659132',1,'Medium','Preventive maintenance',1,'sf'),
+	 (1,1,NULL,'2025-06-26','2025-06-26',NULL,NULL,'2025-06-25 18:31:18.340543','2025-06-25 18:31:18.340543',1,'Medium','Preventive maintenance',1,'ad'),
+	 (2,1,NULL,'2025-06-26','2025-06-26','fabrica fechou',NULL,'2025-06-22 09:53:56.716171','2025-06-25 19:00:02.242148',1,'Medium','Corrective maintenance',1,'aa'),
+	 (1,1,NULL,'2025-06-26','2025-06-26','gdhjdjdd',NULL,'2025-06-22 09:51:13.665173','2025-06-25 19:04:50.335603',2,'Low','Preventive maintenance',1,'df'),
+	 (1,2,NULL,'2025-06-22','2025-06-22',NULL,NULL,'2025-06-22 09:53:39.044428','2025-10-17 18:48:10.592093',2,'Urgent','Preventive maintenance',1,'aa');
+	 
+	 
+	 INSERT INTO public.status (description,created_date,modified_date) VALUES
+	 ('Scheduled','2025-06-21 12:04:51.61691','2025-06-21 12:04:51.61691'),
+	 ('In Progress','2025-06-21 12:04:51.61691','2025-06-21 12:04:51.61691'),
+	 ('Completed','2025-06-21 12:04:51.61691','2025-06-21 12:04:51.61691');
+
