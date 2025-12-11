@@ -1,16 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { nonCriticalTest } from './criticalAndnonCriticalTest';
+
 
 test.describe.serial('Automatic Tests Create User', () => {
 
-nonCriticalTest('Fail to create user without confirm password required', async ({ page }) => {
-  // Pre required valid login
-  await page.goto('http://localhost:3000/login');
-  await page.fill('#username', 'Rafael');  
-  await page.fill('#password', '123456789');
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/dashboard/);
+nonCriticalTest('Fail to create user without confirm password required', async ({authenticatedPage }) => {
 
+  const page = authenticatedPage;
   // Navegate to New User
   await page.click('text=Users'); 
   await page.click('text=New User');
@@ -38,23 +34,19 @@ nonCriticalTest('Fail to create user without confirm password required', async (
   expect(isDisabled).toBe(false); 
 
   // Use the checkValidity() method to check if the form is valid
-  const formInvalid = await page.$eval('form', form => !(form as HTMLFormElement).checkValidity());
+  const formInvalid = await page.$eval(
+  'form',
+  (form: HTMLFormElement) => !form.checkValidity()
+);
   expect(formInvalid).toBe(true);
 });
 
-nonCriticalTest('Successfully create user', async ({ page }) => {
-    
+nonCriticalTest('Successfully create user', async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
 
   const rand = Math.floor(100 + Math.random() * 900);
   const username = `adelton_${rand}`;
   const email = `adelton_${rand}@gmail.com`;
-
-  // Pre required valid login
-  await page.goto('http://localhost:3000/login');
-  await page.fill('#username', 'Rafael');  
-  await page.fill('#password', '123456789');
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/dashboard/);
 
   // Navegate to New User
   await page.click('text=Users'); 

@@ -1,15 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { nonCriticalTest } from './criticalAndnonCriticalTest';
 
 test.describe.serial('Automatic Tests Create Service', () => {
     
-    nonCriticalTest('Fail to create service due to missing information', async ({ page }) => {
-    
-        //login
-        await page.goto('http://localhost:3000/login');
-        await page.fill('#username', 'Rafael');  
-        await page.fill('#password', '123456789');
-        await page.click('button[type="submit"]');
+    nonCriticalTest('Fail to create service due to missing information', async ({authenticatedPage }) => {
+    const page = authenticatedPage;
+      
 
         await expect(page).toHaveURL(/dashboard/);
 
@@ -29,18 +25,16 @@ test.describe.serial('Automatic Tests Create Service', () => {
 
         await page.click('button[type="submit"]');
 
-
-        const formInvalid = await page.$eval('form', form => !(form as HTMLFormElement).checkValidity());
+        const formInvalid = await page.$eval(
+      'form',
+  (form: HTMLFormElement) => !form.checkValidity()
+);
         expect(formInvalid).toBe(true);
     });
 
-    nonCriticalTest('Successfully create service', async ({ page }) => {
+    nonCriticalTest('Successfully create service', async ({ authenticatedPage }) => {
         
-        //login
-        await page.goto('http://localhost:3000/login');
-        await page.fill('#username', 'Rafael');  
-        await page.fill('#password', '123456789');
-        await page.click('button[type="submit"]');
+        const page = authenticatedPage;
 
         await expect(page).toHaveURL(/dashboard/);
 

@@ -1,15 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { nonCriticalTest } from './criticalAndnonCriticalTest';
 
 test.describe.serial('Automatic Tests Edit Service', () => {
 
-    nonCriticalTest('Successfully edit service', async ({ page }) => {
+    nonCriticalTest('Successfully edit service', async ({ authenticatedPage }) => {
         
-        //login
-        await page.goto('http://localhost:3000/login');
-        await page.fill('#username', 'Rafael');  
-        await page.fill('#password', '123456789');
-        await page.click('button[type="submit"]');
+        const page = authenticatedPage;
         
         await expect(page).toHaveURL(/dashboard/);
         
@@ -38,13 +34,9 @@ test.describe.serial('Automatic Tests Edit Service', () => {
         await expect(feedbackModal).toBeVisible();
     });
 
-    nonCriticalTest('Failed to edit service due to the start date being greater than the finish date.', async ({ page }) => {
+    nonCriticalTest('Failed to edit service due to the start date being greater than the finish date.', async ({ authenticatedPage}) => {
         
-        //login
-        await page.goto('http://localhost:3000/login');
-        await page.fill('#username', 'Rafael');  
-        await page.fill('#password', '123456789');
-        await page.click('button[type="submit"]');
+        const page = authenticatedPage;
 
         await expect(page).toHaveURL(/dashboard/);
         
