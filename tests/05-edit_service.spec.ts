@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { nonCriticalTest } from './criticalAndnonCriticalTest';
 
-test.describe.serial('Automatic Tests Create Service', () => {
+test.describe.serial('Automatic Tests Edit Service', () => {
 
     nonCriticalTest('Successfully edit service', async ({ page }) => {
         

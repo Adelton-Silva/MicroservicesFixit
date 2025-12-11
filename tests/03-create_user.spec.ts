@@ -49,7 +49,7 @@ nonCriticalTest('Successfully create user', async ({ page }) => {
   const username = `adelton_${rand}`;
   const email = `adelton_${rand}@gmail.com`;
 
-  // Pré-requisito: login válido
+  // Pre required valid login
   await page.goto('http://localhost:3000/login');
   await page.fill('#username', 'Rafael');  
   await page.fill('#password', '123456789');
